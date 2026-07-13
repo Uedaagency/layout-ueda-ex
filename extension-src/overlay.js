@@ -2302,8 +2302,10 @@
   // Intercept Enter on the native composer in popup mode.
   document.addEventListener("keydown", (e) => {
     if (currentLayoutMode !== "popup") return;
+    if (overlayFeaturesDisabled) return;
     if (window.__tsBypassNativeSend) return;
     if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+
     const target = e.target;
     if (!target || !(target.tagName === "TEXTAREA" || (target.getAttribute && target.getAttribute("contenteditable") === "true"))) return;
     if (target.closest && (target.closest(`#${ROOT_ID}`) || target.closest(`#${MENU_ID}`) || target.closest(`#${SUBMENU_ID}`))) return;
