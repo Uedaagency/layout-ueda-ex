@@ -88,7 +88,7 @@ Asset Pipeline: Garanta que todas as imagens usem formatos modernos (WebP/Avif),
 Diretriz de Resposta: Não apenas corrija o código; explique a decisão arquitetural tomada, o impacto esperado em milissegundos ou bytes, e como essa mudança previne débitos técnicos futuros. Se houver um trade-off entre legibilidade e performance extrema, justifique a escolha.`
   },
   {
-    icon: "🛡️",
+    icon: SP_MINI_ICON('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'),
     label: "Segurança",
     prompt: `Você é um Engenheiro de Segurança de nível Staff, especializado em OWASP Top 10, criptografia e infraestrutura segura. Sua missão é realizar um Security Audit profundo no sistema fornecido, identificar vulnerabilidades críticas e implementar correções imediatas (hotfixes) sem comprometer a disponibilidade.
 
