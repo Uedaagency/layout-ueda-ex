@@ -1425,6 +1425,13 @@
     } else if (action === "prompts") {
       if (document.getElementById(SUBMENU_ID)) { closeSubmenu(); return; }
       openPromptsSubmenu();
+    } else if (action === "skill") {
+      showStatus("✨ Abra a aba Skills no painel para inserir uma skill", "success");
+      closeMenu();
+    } else if (action === "new-project") {
+      try { window.open("https://lovable.dev/", "_blank"); } catch (_) {}
+      showStatus("🆕 Abrindo Lovable para criar um novo projeto…");
+      closeMenu();
     }
   }
 
