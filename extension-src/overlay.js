@@ -487,6 +487,29 @@
       #${MENU_ID} .ts-fab-item.ts-fab-prompts .ts-fab-circle {
         background: linear-gradient(180deg,#0f2a42,#08192b) !important;
       }
+      /* Toggle extensão ON/OFF */
+      #${MENU_ID} .ts-fab-item.ts-fab-toggle-on .ts-fab-circle {
+        background: linear-gradient(180deg,#22c55e,#16a34a) !important;
+        border-color: rgba(255,255,255,0.35) !important;
+        box-shadow: 0 6px 18px rgba(34,197,94,0.45), inset 0 1px 0 rgba(255,255,255,0.25) !important;
+        color: #ffffff !important;
+      }
+      #${MENU_ID} .ts-fab-item.ts-fab-toggle-off .ts-fab-circle {
+        background: linear-gradient(180deg,#ef4444,#dc2626) !important;
+        border-color: rgba(255,255,255,0.35) !important;
+        box-shadow: 0 6px 18px rgba(239,68,68,0.45), inset 0 1px 0 rgba(255,255,255,0.25) !important;
+        color: #ffffff !important;
+      }
+      #${MENU_ID} .ts-fab-item.ts-fab-toggle-on:hover .ts-fab-circle {
+        background: linear-gradient(180deg,#16a34a,#15803d) !important;
+        color: #ffffff !important;
+      }
+      #${MENU_ID} .ts-fab-item.ts-fab-toggle-off:hover .ts-fab-circle {
+        background: linear-gradient(180deg,#dc2626,#b91c1c) !important;
+        color: #ffffff !important;
+      }
+      #${LABELS_ID} .ts-label-row.ts-label-toggle-on .ts-label-ico { color: #16a34a !important; }
+      #${LABELS_ID} .ts-label-row.ts-label-toggle-off .ts-label-ico { color: #dc2626 !important; }
       #${MENU_ID} .ts-fab-chevron {
         opacity: 0.85 !important;
         display: inline-flex !important;
