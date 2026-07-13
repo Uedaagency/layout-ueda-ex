@@ -307,15 +307,46 @@ function escapeHtml(s: string) {
     .replace(/"/g, "&quot;");
 }
 
+const VIEW_MODES: { id: ViewMode; label: string; desc: string }[] = [
+  { id: "entry", label: "Tela de entrada", desc: "Chave de licença" },
+  { id: "choice", label: "Escolha de modo", desc: "Fixo ou flutuante" },
+  { id: "fixed", label: "Painel fixo", desc: "Sidepanel ancorado" },
+  { id: "floating", label: "Widget flutuante", desc: "Botão sobre a página" },
+];
+
 function ExtensionPreview() {
-  const srcDoc = useMemo(() => buildSrcDoc(DEFAULTS), []);
+  const [mode, setMode] = useState<ViewMode>("fixed");
+  const srcDoc = useMemo(() => buildSrcDoc(DEFAULTS, mode), [mode]);
+  const fixedSrcDoc = useMemo(() => buildSrcDoc(DEFAULTS, "fixed"), []);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
-      {/* Simulação de tela de computador (monitor) */}
       <div className="mx-auto flex max-w-[1400px] flex-col items-center">
+        {/* View mode toggle */}
+        <div className="mb-4 flex flex-wrap justify-center gap-2 rounded-xl border border-slate-700/60 bg-slate-900/60 p-2 backdrop-blur">
+          {VIEW_MODES.map((v) => {
+            const active = mode === v.id;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setMode(v.id)}
+                title={v.desc}
+                className={
+                  "flex flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left text-xs font-medium transition " +
+                  (active
+                    ? "bg-[#009FE3] text-white shadow-lg shadow-[#009FE3]/30"
+                    : "text-slate-300 hover:bg-slate-800")
+                }
+              >
+                <span className="text-[13px]">{v.label}</span>
+                <span className={"text-[10px] " + (active ? "text-white/80" : "text-slate-500")}>{v.desc}</span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="w-full rounded-2xl border border-slate-700 bg-slate-950 p-3 shadow-2xl">
-          {/* Barra do navegador */}
           <div className="flex items-center gap-2 rounded-t-lg bg-slate-800 px-4 py-2.5">
             <div className="flex gap-1.5">
               <span className="h-3 w-3 rounded-full bg-red-500" />
@@ -327,40 +358,34 @@ function ExtensionPreview() {
             </div>
           </div>
 
-          {/* Área da "tela do computador" com a extensão à direita */}
           <div className="relative flex h-[820px] overflow-hidden rounded-b-lg bg-white">
-            {/* Conteúdo simulado do site */}
-            <div className="flex-1 space-y-4 p-8">
-              <div className="h-8 w-2/3 rounded bg-slate-200" />
-              <div className="h-4 w-1/2 rounded bg-slate-100" />
-              <div className="mt-8 grid grid-cols-3 gap-4">
-                <div className="h-32 rounded-lg bg-slate-100" />
-                <div className="h-32 rounded-lg bg-slate-100" />
-                <div className="h-32 rounded-lg bg-slate-100" />
-              </div>
-              <div className="mt-6 h-4 w-3/4 rounded bg-slate-100" />
-              <div className="h-4 w-2/3 rounded bg-slate-100" />
-              <div className="h-4 w-1/2 rounded bg-slate-100" />
-            </div>
-
-            {/* Painel lateral real da extensão */}
-            <div
-              className="border-l border-slate-200 shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
-              style={{ width: 380, height: "100%" }}
-            >
-              <iframe
-                title="UEDA EX Sidepanel"
-                srcDoc={srcDoc}
-                style={{ width: "100%", height: "100%", border: 0, display: "block" }}
-                sandbox="allow-same-origin"
-              />
-            </div>
+            {mode === "floating" ? (
+              <FloatingPreview srcDoc={fixedSrcDoc} />
+            ) : mode === "entry" || mode === "choice" ? (
+              <CenteredPopupPreview srcDoc={srcDoc} />
+            ) : (
+              <>
+                <FakeSiteContent />
+                <div
+                  className="border-l border-slate-200 shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
+                  style={{ width: 380, height: "100%" }}
+                >
+                  <iframe
+                    title="UEDA EX Sidepanel"
+                    srcDoc={srcDoc}
+                    style={{ width: "100%", height: "100%", border: 0, display: "block" }}
+                    sandbox="allow-same-origin"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
         <p className="mt-4 text-xs text-slate-400">
-          Simulação: extensão UEDA EX aberta como painel lateral no navegador.
+          Visualização: {VIEW_MODES.find((v) => v.id === mode)?.label}
         </p>
+
 
         <button
           type="button"
