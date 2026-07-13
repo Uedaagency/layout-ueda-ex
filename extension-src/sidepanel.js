@@ -1930,8 +1930,10 @@ licenseKey = key;
     return { ...uploadedFile, is_temp_image: true, download_url: publicUrl, is_native_image: false };
   }
 
-  // Imagens e ZIPs são enviados INLINE (base64) no payload da edge function
-  // send-lovable-prompt — mesmo método da Lovasiri. Sem upload para storage.
+  // Imagens usam dois caminhos em paralelo:
+  // 1) URL pública via upload-prompt-image, embutida no texto do prompt.
+  // 2) inline_data em base64, mantido como fallback para a edge function.
+  // Assim o modo flutuante não perde a imagem se um dos formatos for ignorado.
   async function spUploadFileDirect(file, token) {
     const contentType = spInferContentType(file);
     const fname = (file && file.name) || '';
@@ -1952,6 +1954,18 @@ licenseKey = key;
       reader.onerror = () => reject(new Error('Falha ao ler arquivo'));
       reader.readAsDataURL(file);
     });
+
+    if (isImage) {
+      try {
+        const uploaded = await spUploadImageNative(file, token);
+        return Object.assign({}, uploaded, {
+          inline_data: dataUrl,
+          inline_type: contentType || uploaded.file_type || 'image/png'
+        });
+      } catch (err) {
+        console.warn('[TS Upload] URL upload failed; keeping inline image fallback:', err);
+      }
+    }
 
     return {
       file_id: 'inline_' + crypto.randomUUID(),
@@ -2002,7 +2016,7 @@ licenseKey = key;
       if (window.parent === window) return;
       const items = (spAttachedFiles || []).map(f => ({
         name: f.file_name || '',
-        size: (f.rawFile && f.rawFile.size) || 0,
+        size: f.size || (f.rawFile && f.rawFile.size) || 0,
         type: f.file_type || '',
         uploading: !!f.uploading,
         uploadFailed: !!f.uploadFailed,
