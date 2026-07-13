@@ -265,8 +265,10 @@
       #${SUBMENU_ID} { display: none !important; }
       #${LAUNCHER_ID} .ts-launcher-dot {
         position: absolute !important;
-        top: 4px !important;
-        right: 4px !important;
+        top: -4px !important;
+        right: -4px !important;
+        z-index: 5 !important;
+
         min-width: 16px !important;
         height: 16px !important;
         padding: 0 4px !important;
