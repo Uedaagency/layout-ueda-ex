@@ -163,36 +163,37 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        background: #ffffff !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
-        border: 3px solid #0f2a42 !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0.0) !important;
+        background: transparent !important;
+        border: 1.5px solid rgba(0,159,227,0.55) !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.28) !important;
         padding: 0 !important;
-        transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease !important;
+        transition: transform 200ms ease, border-color 200ms ease !important;
         user-select: none !important;
         touch-action: none !important;
+        animation: tsLauncherIdlePulse 2.4s ease-out infinite !important;
       }
       #${LAUNCHER_ID}:hover {
         transform: scale(1.06) !important;
-        border-color: var(--ts-brand-primary) !important;
-        box-shadow: 0 12px 40px rgba(0,159,227,0.45) !important;
+        border-color: var(--ts-brand-primary, #009FE3) !important;
+        background: transparent !important;
       }
       #${LAUNCHER_ID}.ts-launcher-dragging {
         cursor: grabbing !important;
         transition: none !important;
+        animation: none !important;
       }
       #${LAUNCHER_ID} img {
-        width: 38px !important;
-        height: 38px !important;
+        width: 46px !important;
+        height: 46px !important;
         object-fit: contain !important;
         pointer-events: none !important;
-        border-radius: 0 !important;
+        border-radius: 999px !important;
         opacity: 1 !important;
         filter: none !important;
+        background: transparent !important;
       }
       #${LAUNCHER_ID}.ts-launcher-active {
-        background: #ffffff !important;
+        background: transparent !important;
         border-color: var(--ts-brand-primary, #009FE3) !important;
         animation: tsLauncherWaves 1.8s ease-out infinite !important;
       }
@@ -200,6 +201,11 @@
         opacity: 1 !important;
         filter: none !important;
         background: transparent !important;
+      }
+      @keyframes tsLauncherIdlePulse {
+        0%   { box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 0 rgba(0,159,227,0.35), 0 0 0 0 rgba(0,159,227,0.18); }
+        70%  { box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 12px rgba(0,159,227,0), 0 0 0 22px rgba(0,159,227,0); }
+        100% { box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 0 rgba(0,159,227,0), 0 0 0 0 rgba(0,159,227,0); }
       }
       @keyframes tsLauncherWaves {
         0%   { box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0.55), 0 0 0 0 rgba(0,159,227,0.35); }
