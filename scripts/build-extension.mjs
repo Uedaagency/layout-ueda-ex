@@ -126,10 +126,15 @@ for (const file of files) {
     continue;
   }
   const code = readFileSync(file, 'utf8');
+  const base = rel.split(/[\\/]/).pop();
+  const opts = LIGHT_OBFUSCATION_FILES.has(rel) || LIGHT_OBFUSCATION_FILES.has(base)
+    ? LIGHT_OBFUSCATE_OPTS
+    : OBFUSCATE_OPTS;
+  const profile = opts === LIGHT_OBFUSCATE_OPTS ? 'light' : 'full';
   try {
-    const result = JavaScriptObfuscator.obfuscate(code, OBFUSCATE_OPTS).getObfuscatedCode();
+    const result = JavaScriptObfuscator.obfuscate(code, opts).getObfuscatedCode();
     writeFileSync(file, result);
-    console.log('  ok  ', rel);
+    console.log('  ok  ', rel, `(${profile})`);
   } catch (e) {
     console.error('  FAIL', rel, e.message);
     process.exit(1);
