@@ -1308,7 +1308,7 @@
       menu.style.setProperty("top", Math.max(8, rect.bottom + gap) + "px", "important");
     }
     // Constrain inside preview bounds
-    menu.style.setProperty("max-width", Math.max(160, bounds.right - bounds.left - 16) + "px", "important");
+    // Menu width is fixed by CSS (54px) — no max-width override needed.
   }
 
   function positionSubmenuRelativeToMenu(sub) {
