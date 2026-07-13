@@ -1380,7 +1380,7 @@ licenseKey = key;
               '<span class="sp-notif-badge" style="display:none">0</span>' +
             '</button>' +
 
-            '<button class="sp-profile-action sp-layout-btn" title="Alternar modo flutuante" style="display:none">' +
+            '<button class="sp-profile-action sp-layout-btn" title="Alternar para modo flutuante">' +
               '<svg class="sp-action-icon sp-layout-icon-sidebar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
                 '<rect x="3" y="3" width="18" height="18" rx="2"/>' +
                 '<line x1="15" y1="3" x2="15" y2="21"/>' +
