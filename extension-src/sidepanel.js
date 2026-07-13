@@ -659,7 +659,7 @@ const logoutBtn = e.target.closest('.sp-logout-btn');
 function setExtensionLayoutMode(mode) {
   const isPopup = (mode === 'popup' || mode === 'floating');
   const stored = isPopup ? 'popup' : 'sidebar';
-  try { chrome.storage.local.set({ tsExtensionLayoutMode: stored }); } catch(_) {}
+  try { chrome.storage.local.set({ tsExtensionLayoutMode: stored, tsModeChoicePending: false }); } catch(_) {}
   try {
     window.parent && window.parent.postMessage({ type: 'TS_OVERLAY_SET_LAYOUT', mode: stored }, '*');
   } catch(_) {}
@@ -898,13 +898,25 @@ if (notifClose) {
   }
 
   // --- License Gate ---
+  function setPanelScreenState(state) {
+    try {
+      document.body.classList.toggle('sp-license-screen', state === 'license');
+      document.body.classList.toggle('sp-mode-screen', state === 'mode');
+      document.body.classList.toggle('sp-main-screen', state === 'main');
+    } catch(_) {}
+  }
+
   function showLicenseGate() {
+    setPanelScreenState('license');
+    try { chrome.storage.local.set({ tsExtensionLayoutMode: 'popup', tsModeChoicePending: false }); } catch(_) {}
     const body = document.getElementById('sp-body');
     body.innerHTML = spTemplateLicenseGate();
     document.getElementById('sp-validate-btn').addEventListener('click', validateLicense);
   }
 
   function showModeChooser() {
+    setPanelScreenState('mode');
+    try { chrome.storage.local.set({ tsExtensionLayoutMode: 'popup', tsModeChoicePending: true }); } catch(_) {}
     const body = document.getElementById('sp-body');
     if (!body) { showMainUI(); return; }
     body.innerHTML = spTemplateModeChooser();
@@ -916,7 +928,10 @@ if (notifClose) {
       });
     });
     const skip = document.getElementById('sp-mode-skip');
-    if (skip) skip.addEventListener('click', () => showMainUI());
+    if (skip) skip.addEventListener('click', () => {
+      try { setExtensionLayoutMode('popup'); } catch(_) {}
+      showMainUI();
+    });
   }
 
 
@@ -935,7 +950,7 @@ if (notifClose) {
 licenseType = data.license_type || 'paid';
 licenseLifetime = data.lifetime || false;
 licenseKey = key;
-        chrome.storage.local.set({ ql_license_valid: true, ql_license_key: key, ql_session_id: data.session_id, ql_user_name: data.user_name || null, ql_expires_at: data.expires_at || null, ql_activated_at: data.activated_at || null, ql_license_status: data.status || null, ql_license_lifetime: licenseLifetime, ql_license_type: data.license_type || 'paid', }, () => {
+        chrome.storage.local.set({ ql_license_valid: true, ql_license_key: key, ql_session_id: data.session_id, ql_user_name: data.user_name || null, ql_expires_at: data.expires_at || null, ql_activated_at: data.activated_at || null, ql_license_status: data.status || null, ql_license_lifetime: licenseLifetime, ql_license_type: data.license_type || 'paid', tsExtensionLayoutMode: 'popup', tsModeChoicePending: true }, () => {
           log.className = 'sp-log sp-log-success'; log.textContent = '✓ ' + data.message;
           startHeartbeat(key);
           setTimeout(() => { showModeChooser(); }, 600);
@@ -1328,6 +1343,7 @@ licenseKey = key;
 
   // --- Main UI ---
   function showMainUI() {
+  setPanelScreenState('main');
   const greeting = spEscapeHtml(userName || 'User');
   const statusBadge = spTemplateStatusBadge(licenseStatus);
   const body = document.getElementById('sp-body');
