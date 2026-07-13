@@ -8,6 +8,8 @@ import {
   Eraser,
   User,
   MessageSquare,
+  Wrench,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import sidepanelCss from "../extension-assets/sidepanel.css?raw";
