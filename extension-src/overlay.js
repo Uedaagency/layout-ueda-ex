@@ -801,6 +801,18 @@
 
   function applyCollapsedState(collapsed) { setSidebarCollapsed(Boolean(collapsed)); }
 
+  function removeModeTransientSurfaces() {
+    closeMenu();
+    removeNativeBadge();
+    removeNativeChatTools();
+    clearComposerWrapMark();
+    clearPopupSelectedSkill();
+    try { closeSlashPicker(); } catch (_) {}
+    try { closeCenteredModal(); } catch (_) {}
+    const notifPanel = document.getElementById(NOTIF_PANEL_ID);
+    if (notifPanel) notifPanel.remove();
+  }
+
   function refreshOverlayMode() {
     const root = document.getElementById(ROOT_ID);
     const isPopup = currentLayoutMode === "popup";
@@ -816,10 +828,7 @@
 
     if (flowModalActive) {
       removeLauncher();
-      removeNativeBadge();
-      removeNativeChatTools();
-      clearComposerWrapMark();
-      clearPopupSelectedSkill();
+      removeModeTransientSurfaces();
     } else if (isPopup) {
       buildLauncher();
       if (!overlayFeaturesDisabled) {
@@ -834,10 +843,7 @@
       }
     } else {
       removeLauncher();
-      removeNativeBadge();
-      removeNativeChatTools();
-      clearComposerWrapMark();
-      clearPopupSelectedSkill();
+      removeModeTransientSurfaces();
     }
 
     // Always re-sync sidebar visibility so switching back from popup/floating
@@ -846,7 +852,7 @@
       chrome.storage.local.get({ sidebarCollapsed: false }, (r) => {
         const collapsed = currentLayoutMode === "sidebar" && !flowModalActive
           ? Boolean(r && r.sidebarCollapsed)
-          : Boolean(r && r.sidebarCollapsed);
+          : false;
         setSidebarCollapsed(collapsed);
       });
     } catch (_) {
@@ -877,6 +883,20 @@
   function applyLayoutMode(mode) {
     currentLayoutMode = (mode === "popup" || mode === "floating") ? "popup" : "sidebar";
     refreshOverlayMode();
+  }
+
+  function setLayoutModeFromUser(mode) {
+    const nextMode = (mode === "popup" || mode === "floating") ? "popup" : "sidebar";
+    flowModalActive = false;
+    applyLayoutMode(nextMode);
+    try {
+      chrome.storage.local.set({
+        tsExtensionLayoutMode: nextMode,
+        tsModeChoicePending: false,
+        sidebarCollapsed: false,
+      });
+    } catch (_) {}
+    setSidebarCollapsed(false);
   }
 
   // ===================== Popup launcher =====================
@@ -1898,8 +1918,7 @@
 
   function handleMenuAction(action) {
     if (action === "sidebar") {
-      applyLayoutMode("sidebar");
-      try { chrome.storage.local.set({ tsExtensionLayoutMode: "sidebar" }); } catch (_) {}
+      setLayoutModeFromUser("sidebar");
       closeMenu();
     } else if (action === "watermark") {
       runIframeAction("watermark");
@@ -3185,8 +3204,7 @@
       try { chrome.storage.local.set({ sidebarCollapsed: Boolean(data.collapsed) }); } catch (_) {}
     } else if (data.type === "TS_OVERLAY_SET_LAYOUT") {
       const mode = (data.mode === "popup" || data.mode === "floating") ? "popup" : "sidebar";
-      applyLayoutMode(mode);
-      try { chrome.storage.local.set({ tsExtensionLayoutMode: mode, tsModeChoicePending: false }); } catch (_) {}
+      setLayoutModeFromUser(mode);
     } else if (data.type === "TS_OVERLAY_TEMPLATES") {
       if (Array.isArray(data.templates)) {
         promptTemplates = data.templates.slice(0, 24);
