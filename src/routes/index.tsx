@@ -570,6 +570,7 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
     "new-project": "Criar projeto novo",
     download: "Baixar projeto",
     "remove-watermark": "Remover marca d'água",
+    shortcuts: "Atalhos",
   };
   const descriptions: Partial<Record<Exclude<FloatingTab, null>, string>> = {
     optimize: "Analisa o projeto e sugere melhorias de performance, código e UX.",
@@ -592,6 +593,7 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
       </div>
 
       {tab === "prompt" && <PromptContent />}
+      {tab === "shortcuts" && <PromptContent />}
       {tab === "skills" && <SkillsContent />}
       {tab === "history" && <HistoryContent />}
       {tab === "user" && <UserContent />}
