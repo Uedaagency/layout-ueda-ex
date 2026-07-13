@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import sidepanelCss from "../extension-assets/sidepanel.css?raw";
+
+export type ViewMode = "entry" | "choice" | "fixed" | "floating";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -84,10 +87,11 @@ const SHORTCUTS = [
   { icon: "🧮", label: "Responsividade" },
 ];
 
-export function buildSrcDoc(cfg: Config) {
+export function buildSrcDoc(cfg: Config, mode: ViewMode = "fixed") {
   const rgb = hexToRgb(cfg.primaryColor);
   const hover = adjust(cfg.primaryColor, -12);
   const rgbStr = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+
 
   const statusBadge =
     cfg.status === "trial"
@@ -222,22 +226,78 @@ export function buildSrcDoc(cfg: Config) {
     </div>
   `;
 
-  const footer = `
-    <div class="sp-footer">
-      <div class="sp-footer-badge">${escapeHtml(cfg.footerText)}</div>
+  const licenseGate = `
+    <div class="sp-license-gate" style="display:flex">
+      <div class="sp-login-logo" style="width:64px;height:64px;border-radius:16px;background:var(--ts-brand-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:26px;margin-bottom:14px">U</div>
+      <p class="sp-gate-title">Bem vindo a <span>${escapeHtml(cfg.brandName)}</span></p>
+      <p class="sp-gate-desc">Insira sua chave de licença para desbloquear.</p>
+      <input class="sp-input" placeholder="UEDAEX-XXXXXXXXXXXXXX" spellcheck="false">
+      <button class="sp-btn-primary">Validar Licença</button>
+      <div class="sp-gate-actions">
+        <a class="sp-glass-card" href="#" onclick="return false">
+          <div class="sp-glass-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+          </div>
+          <div class="sp-glass-content">
+            <span class="sp-glass-title">Obter suporte</span>
+            <span class="sp-glass-sub">Fale com nossa equipe e tire suas dúvidas.</span>
+          </div>
+          <div class="sp-glass-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </a>
+      </div>
     </div>
   `;
+
+  const choiceScreen = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;gap:18px;min-height:520px;text-align:center">
+      <div style="width:64px;height:64px;border-radius:16px;background:var(--ts-brand-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:26px">U</div>
+      <div>
+        <h2 style="margin:0 0 6px;font-size:18px;font-weight:700">Escolha o modo de exibição</h2>
+        <p style="margin:0;font-size:13px;color:var(--ql-text-muted, #6b7280)">Como você prefere usar a extensão?</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;margin-top:8px">
+        <button style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;border:2px solid var(--ts-brand-primary);background:var(--ts-brand-primary-soft);cursor:pointer;text-align:left;color:inherit">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--ts-brand-primary);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="10" rx="1"/></svg>
+          </div>
+          <div>
+            <div style="font-weight:600;font-size:14px">Painel Fixo</div>
+            <div style="font-size:12px;opacity:.75">Ancorado ao lado do navegador</div>
+          </div>
+        </button>
+        <button style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;border:2px solid rgba(0,0,0,.08);background:transparent;cursor:pointer;text-align:left;color:inherit">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#c84cff,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          </div>
+          <div>
+            <div style="font-weight:600;font-size:14px">Widget Flutuante</div>
+            <div style="font-size:12px;opacity:.75">Botão sobre a página, arrastável</div>
+          </div>
+        </button>
+      </div>
+      <button style="margin-top:10px;padding:10px 24px;border-radius:8px;background:var(--ts-brand-primary);color:#fff;border:0;font-weight:600;cursor:pointer">Continuar</button>
+    </div>
+  `;
+
+  const footer = `<div class="sp-footer"><div class="sp-footer-badge">${escapeHtml(cfg.footerText)}</div></div>`;
+
+  let body = "";
+
+  if (mode === "entry") body = `${header}<div class="sp-body">${licenseGate}</div>${footer}`;
+  else if (mode === "choice") body = `${header}<div class="sp-body">${choiceScreen}</div>${footer}`;
+  else body = `${header}<div class="sp-body">${mainUI}</div>${footer}`;
 
   return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
 <style>${sidepanelCss}</style>
 <style>${override}</style>
 </head>
 <body class="${cfg.theme === "light" ? "sp-light" : ""}">
-${header}
-<div class="sp-body">${mainUI}</div>
-${footer}
+${body}
 </body></html>`;
 }
+
 
 function escapeHtml(s: string) {
   return String(s)
@@ -247,15 +307,46 @@ function escapeHtml(s: string) {
     .replace(/"/g, "&quot;");
 }
 
+const VIEW_MODES: { id: ViewMode; label: string; desc: string }[] = [
+  { id: "entry", label: "Tela de entrada", desc: "Chave de licença" },
+  { id: "choice", label: "Escolha de modo", desc: "Fixo ou flutuante" },
+  { id: "fixed", label: "Painel fixo", desc: "Sidepanel ancorado" },
+  { id: "floating", label: "Widget flutuante", desc: "Botão sobre a página" },
+];
+
 function ExtensionPreview() {
-  const srcDoc = useMemo(() => buildSrcDoc(DEFAULTS), []);
+  const [mode, setMode] = useState<ViewMode>("fixed");
+  const srcDoc = useMemo(() => buildSrcDoc(DEFAULTS, mode), [mode]);
+  const fixedSrcDoc = useMemo(() => buildSrcDoc(DEFAULTS, "fixed"), []);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
-      {/* Simulação de tela de computador (monitor) */}
       <div className="mx-auto flex max-w-[1400px] flex-col items-center">
+        {/* View mode toggle */}
+        <div className="mb-4 flex flex-wrap justify-center gap-2 rounded-xl border border-slate-700/60 bg-slate-900/60 p-2 backdrop-blur">
+          {VIEW_MODES.map((v) => {
+            const active = mode === v.id;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setMode(v.id)}
+                title={v.desc}
+                className={
+                  "flex flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left text-xs font-medium transition " +
+                  (active
+                    ? "bg-[#009FE3] text-white shadow-lg shadow-[#009FE3]/30"
+                    : "text-slate-300 hover:bg-slate-800")
+                }
+              >
+                <span className="text-[13px]">{v.label}</span>
+                <span className={"text-[10px] " + (active ? "text-white/80" : "text-slate-500")}>{v.desc}</span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="w-full rounded-2xl border border-slate-700 bg-slate-950 p-3 shadow-2xl">
-          {/* Barra do navegador */}
           <div className="flex items-center gap-2 rounded-t-lg bg-slate-800 px-4 py-2.5">
             <div className="flex gap-1.5">
               <span className="h-3 w-3 rounded-full bg-red-500" />
@@ -267,40 +358,34 @@ function ExtensionPreview() {
             </div>
           </div>
 
-          {/* Área da "tela do computador" com a extensão à direita */}
           <div className="relative flex h-[820px] overflow-hidden rounded-b-lg bg-white">
-            {/* Conteúdo simulado do site */}
-            <div className="flex-1 space-y-4 p-8">
-              <div className="h-8 w-2/3 rounded bg-slate-200" />
-              <div className="h-4 w-1/2 rounded bg-slate-100" />
-              <div className="mt-8 grid grid-cols-3 gap-4">
-                <div className="h-32 rounded-lg bg-slate-100" />
-                <div className="h-32 rounded-lg bg-slate-100" />
-                <div className="h-32 rounded-lg bg-slate-100" />
-              </div>
-              <div className="mt-6 h-4 w-3/4 rounded bg-slate-100" />
-              <div className="h-4 w-2/3 rounded bg-slate-100" />
-              <div className="h-4 w-1/2 rounded bg-slate-100" />
-            </div>
-
-            {/* Painel lateral real da extensão */}
-            <div
-              className="border-l border-slate-200 shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
-              style={{ width: 380, height: "100%" }}
-            >
-              <iframe
-                title="UEDA EX Sidepanel"
-                srcDoc={srcDoc}
-                style={{ width: "100%", height: "100%", border: 0, display: "block" }}
-                sandbox="allow-same-origin"
-              />
-            </div>
+            {mode === "floating" ? (
+              <FloatingPreview srcDoc={fixedSrcDoc} />
+            ) : mode === "entry" || mode === "choice" ? (
+              <CenteredPopupPreview srcDoc={srcDoc} />
+            ) : (
+              <>
+                <FakeSiteContent />
+                <div
+                  className="border-l border-slate-200 shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
+                  style={{ width: 380, height: "100%" }}
+                >
+                  <iframe
+                    title="UEDA EX Sidepanel"
+                    srcDoc={srcDoc}
+                    style={{ width: "100%", height: "100%", border: 0, display: "block" }}
+                    sandbox="allow-same-origin"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
         <p className="mt-4 text-xs text-slate-400">
-          Simulação: extensão UEDA EX aberta como painel lateral no navegador.
+          Visualização: {VIEW_MODES.find((v) => v.id === mode)?.label}
         </p>
+
 
         <button
           type="button"
@@ -334,6 +419,86 @@ function ExtensionPreview() {
           Inclui os ajustes aplicados na pré-visualização.
         </p>
       </div>
+    </div>
+  );
+}
+
+function FakeSiteContent() {
+  return (
+    <div className="flex-1 space-y-4 p-8">
+      <div className="h-8 w-2/3 rounded bg-slate-200" />
+      <div className="h-4 w-1/2 rounded bg-slate-100" />
+      <div className="mt-8 grid grid-cols-3 gap-4">
+        <div className="h-32 rounded-lg bg-slate-100" />
+        <div className="h-32 rounded-lg bg-slate-100" />
+        <div className="h-32 rounded-lg bg-slate-100" />
+      </div>
+      <div className="mt-6 h-4 w-3/4 rounded bg-slate-100" />
+      <div className="h-4 w-2/3 rounded bg-slate-100" />
+      <div className="h-4 w-1/2 rounded bg-slate-100" />
+    </div>
+  );
+}
+
+function CenteredPopupPreview({ srcDoc }: { srcDoc: string }) {
+  return (
+    <div className="relative flex flex-1 items-center justify-center bg-slate-100">
+      <FakeSiteContent />
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" />
+      <div
+        className="relative overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-2xl"
+        style={{ width: 380, height: 620 }}
+      >
+        <iframe
+          title="UEDA EX Popup"
+          srcDoc={srcDoc}
+          style={{ width: "100%", height: "100%", border: 0, display: "block" }}
+          sandbox="allow-same-origin"
+        />
+      </div>
+    </div>
+  );
+}
+
+function FloatingPreview({ srcDoc }: { srcDoc: string }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="relative flex-1">
+      <FakeSiteContent />
+      {open ? (
+        <div
+          className="absolute overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-2xl"
+          style={{ width: 360, height: 560, right: 24, bottom: 96 }}
+        >
+          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] text-slate-500">
+            <span>Widget flutuante</span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded px-2 py-0.5 hover:bg-slate-200"
+            >
+              ✕
+            </button>
+          </div>
+          <iframe
+            title="UEDA EX Floating"
+            srcDoc={srcDoc}
+            style={{ width: "100%", height: "calc(100% - 28px)", border: 0, display: "block" }}
+            sandbox="allow-same-origin"
+          />
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="absolute flex h-14 w-14 items-center justify-center rounded-full bg-[#009FE3] text-white shadow-2xl shadow-[#009FE3]/40 transition hover:scale-105"
+        style={{ right: 24, bottom: 24 }}
+        title="Abrir/fechar widget"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
+      </button>
     </div>
   );
 }
