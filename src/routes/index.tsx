@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import sidepanelCss from "../extension-assets/sidepanel.css?raw";
+import uedaLogo from "../assets/ueda-logo.png.asset.json";
 
 export type ViewMode = "entry" | "choice" | "fixed" | "floating";
 
