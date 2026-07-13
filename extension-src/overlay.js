@@ -1387,6 +1387,14 @@
     window.addEventListener("scroll", reposition, true);
   }
 
+  function safePromptIcon(raw) {
+    const s = String(raw || "").trim();
+    // Reject any HTML/SVG markup — only allow short plain text/emoji.
+    if (!s || /[<>]/.test(s)) return "⚡";
+    // Use grapheme-safe slice for emoji.
+    const chars = Array.from(s);
+    return chars.slice(0, 2).join("") || "⚡";
+  }
   function openPromptsSubmenu() {
     closeSubmenu();
     const menu = document.getElementById(MENU_ID);
@@ -1397,7 +1405,7 @@
     sub.innerHTML = list.length
       ? list.map((t, i) =>
           `<button class="ts-fab-item" data-prompt-index="${i}" style="animation-delay:${i * 25}ms" title="${escapeHtml(t.label)}">` +
-            `<span class="ts-fab-circle">${escapeHtml(t.icon || "⚡")}</span>` +
+            `<span class="ts-fab-circle">${escapeHtml(safePromptIcon(t.icon))}</span>` +
             `<span class="ts-fab-label">${escapeHtml(t.label)}</span>` +
           `</button>`
         ).join("")
