@@ -141,7 +141,7 @@ try {
       window.__tsSidebarCollapsed = Boolean(changes.sidebarCollapsed.newValue);
     }
     if (changes.tsExtensionLayoutMode) {
-      window.__tsExtensionLayoutMode = changes.tsExtensionLayoutMode.newValue || "sidebar";
+      window.__tsExtensionLayoutMode = changes.tsExtensionLayoutMode.newValue || "popup";
     }
     if (changes.sidebarCollapsed || changes.tsExtensionLayoutMode) {
       injectSidebarCollapseFloatingButton();

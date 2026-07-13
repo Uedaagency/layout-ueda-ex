@@ -2215,7 +2215,7 @@
   try {
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area !== "local") return;
-      if (changes.tsExtensionLayoutMode) applyLayoutMode(changes.tsExtensionLayoutMode.newValue || "sidebar");
+      if (changes.tsExtensionLayoutMode) applyLayoutMode(changes.tsExtensionLayoutMode.newValue || "popup");
       if (changes.sidebarCollapsed) applyCollapsedState(Boolean(changes.sidebarCollapsed.newValue));
       if (changes.ql_license_valid || changes.tsModeChoicePending) {
         try {

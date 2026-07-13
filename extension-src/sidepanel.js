@@ -674,8 +674,8 @@ function setExtensionLayoutMode(mode) {
 
 function toggleExtensionLayoutMode() {
   try {
-    chrome.storage.local.get({ tsExtensionLayoutMode: 'sidebar' }, (r) => {
-      const current = (r && r.tsExtensionLayoutMode) || 'sidebar';
+    chrome.storage.local.get({ tsExtensionLayoutMode: 'popup' }, (r) => {
+      const current = (r && r.tsExtensionLayoutMode) || 'popup';
       const isPopup = (current === 'popup' || current === 'floating');
       setExtensionLayoutMode(isPopup ? 'sidebar' : 'popup');
     });
