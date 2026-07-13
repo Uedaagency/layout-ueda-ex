@@ -426,13 +426,16 @@ function FixedPreview({ srcDoc }: { srcDoc: string }) {
    FLOATING: pulsing logo → icon rail → expandable to names
    Tabs (Prompt/Skills/Histórico) and user icon open glass popups
 ============================================================ */
-type FloatingTab = null | "prompt" | "skills" | "history" | "user";
+type FloatingTab = null | "prompt" | "skills" | "history" | "user" | "optimize" | "insert-skill" | "new-project" | "download" | "remove-watermark";
 
-const RAIL_ITEMS: { id: Exclude<FloatingTab, null>; icon: string; label: string }[] = [
-  { id: "prompt", icon: "⚡", label: "Prompt" },
-  { id: "skills", icon: "⭐", label: "Skills" },
-  { id: "history", icon: "💬", label: "Histórico" },
-  { id: "user", icon: "👤", label: "Usuário" },
+const RAIL_ITEMS: { id: Exclude<FloatingTab, null>; icon: LucideIcon; label: string }[] = [
+  { id: "optimize", icon: Zap, label: "Otimizar" },
+  { id: "insert-skill", icon: Sparkles, label: "Inserir Skill" },
+  { id: "new-project", icon: FilePlus2, label: "Criar projeto novo" },
+  { id: "download", icon: Download, label: "Baixar projeto" },
+  { id: "remove-watermark", icon: Eraser, label: "Remover marca d'água" },
+  { id: "history", icon: MessageSquare, label: "Histórico" },
+  { id: "user", icon: User, label: "Usuário" },
 ];
 
 function FloatingPreview() {
