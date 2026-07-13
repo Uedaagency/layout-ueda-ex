@@ -1334,7 +1334,7 @@
   const MAIN_ITEMS = [
     { action: "user",         icon: LICON.user,       label: "Usuário" },
     { action: "prompts",      icon: LICON.wrench,     label: "Atalhos" },
-    { action: "optimize",     icon: LICON.sparkles,   label: "Otimizar" },
+    { action: "optimize",     icon: LICON.sparkles,   label: "Reescrever" },
     { action: "skill",        icon: LICON.wand,       label: "Inserir Skill" },
     { action: "new-project",  icon: LICON.filePlus,   label: "Criar projeto novo" },
     { action: "download",     icon: LICON.download,   label: "Baixar projeto" },
@@ -1691,12 +1691,12 @@
       const composer = findNativeComposer();
       const text = composer ? readComposerText(composer).trim() : "";
       if (!text) {
-        showStatus("✗ Digite algo no chat nativo antes de otimizar", "error");
+        showStatus("✗ Digite algo no chat nativo antes de reescrever", "error");
         return;
       }
-      runIframeAction("optimize", { prompt: text });
-      showStatus("✨ Otimizando prompt do composer nativo…");
+      rewriteNativeComposerPrompt(composer, text);
       closeMenu();
+
     } else if (action === "notifications") {
       openNotificationsPanel();
     } else if (action === "prompts") {
@@ -1962,6 +1962,58 @@
       input.dispatchEvent(new InputEvent("input", { bubbles: true }));
     }
     return true;
+  }
+
+  // Rewrite (reescrever) the native composer's text via the optimize-prompt edge fn.
+  const TS_OPTIMIZE_URL = "https://qpssaefptonzbpgcvtrq.supabase.co/functions/v1/optimize-prompt";
+  const TS_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwc3NhZWZwdG9uemJwZ2N2dHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY4NTUsImV4cCI6MjA5OTUyMjg1NX0.rZVreithJxc4w3T4W45zXTyATai3yjYennoa4nU9Uu8";
+  let __tsOptimizeBusy = false;
+  async function rewriteNativeComposerPrompt(composerEl, text) {
+    if (__tsOptimizeBusy) return;
+    __tsOptimizeBusy = true;
+    showStatus("✨ Reescrevendo prompt…");
+    try {
+      const sd = await new Promise((r) => {
+        try { chrome.storage.local.get(["ql_license_key"], r); } catch (_) { r({}); }
+      });
+      const licenseKey = (sd && sd.ql_license_key) || "";
+      const res = await fetch(TS_OPTIMIZE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": TS_SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + TS_SUPABASE_ANON_KEY,
+          "x-license-key": licenseKey,
+        },
+        body: JSON.stringify({ prompt: text }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data && data.optimized_prompt) {
+        const target = composerEl || findNativeComposer();
+        if (!target) { showStatus("✗ Composer nativo não encontrado", "error"); return; }
+        target.focus();
+        if (target.tagName === "TEXTAREA" || target.tagName === "INPUT") {
+          const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")
+            || Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value");
+          if (setter && setter.set) setter.set.call(target, data.optimized_prompt);
+          else target.value = data.optimized_prompt;
+          target.dispatchEvent(new Event("input", { bubbles: true }));
+        } else {
+          target.textContent = data.optimized_prompt;
+          target.dispatchEvent(new InputEvent("input", { bubbles: true }));
+        }
+        showStatus("✓ Prompt reescrito — revise e envie", "success");
+      } else if (data && data.error) {
+        showStatus("✗ " + data.error, "error");
+      } else {
+        showStatus("✗ Falha ao reescrever", "error");
+      }
+    } catch (err) {
+      console.error("[TS Reescrever] erro:", err);
+      showStatus("✗ Falha ao reescrever: " + (err && err.message || ""), "error");
+    } finally {
+      __tsOptimizeBusy = false;
+    }
   }
 
   function sendPromptViaIframe(prompt, files) {
