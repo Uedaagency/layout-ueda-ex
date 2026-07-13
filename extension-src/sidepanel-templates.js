@@ -62,7 +62,7 @@ Diretriz de Execução: Analise a página atual como um crítico de design. Iden
     prompt: "Forneça uma explicação técnica detalhada e didática sobre o funcionamento deste código. Descreva o papel de cada função, componente e lógica de negócio, facilitando a compreensão do fluxo de dados e a arquitetura da solução para outros desenvolvedores."
   },
   {
-    icon: "⚡",
+    icon: SP_MINI_ICON('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'),
     label: "Otimizar",
     prompt: `Você é um Engenheiro de Software Principal (L6/L7) especializado em sistemas reativos de alta escala e otimização de infraestrutura frontend/backend. Seu objetivo é transformar o código atual em um estado de "World-Class Engineering".
 
