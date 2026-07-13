@@ -1447,12 +1447,14 @@
     // Companion white labels panel
     const labels = document.createElement("div");
     labels.id = LABELS_ID;
-    labels.innerHTML = MAIN_ITEMS.map((it) => (
-      `<button type="button" class="ts-label-row" data-action="${it.action}">` +
+    labels.innerHTML = MAIN_ITEMS.map((it) => {
+      let lbl = it.label;
+      if (it.dynamic === "toggle") lbl = overlayFeaturesDisabled ? "Ativar aqui" : "Desativar aqui";
+      return `<button type="button" class="ts-label-row" data-action="${it.action}">` +
         `<span class="ts-label-ico">${it.icon}</span>` +
-        `<span class="ts-label-text">${escapeHtml(it.label)}</span>` +
-      `</button>`
-    )).join("");
+        `<span class="ts-label-text">${escapeHtml(lbl)}</span>` +
+      `</button>`;
+    }).join("");
     document.body.appendChild(labels);
     positionLabelsPanel(labels);
 
