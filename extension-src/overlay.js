@@ -192,8 +192,19 @@
         filter: none !important;
       }
       #${LAUNCHER_ID}.ts-launcher-active {
-        background: var(--ts-primary-gradient) !important;
-        border-color: var(--ts-primary-purple) !important;
+        background: #ffffff !important;
+        border-color: var(--ts-brand-primary, #009FE3) !important;
+        animation: tsLauncherWaves 1.8s ease-out infinite !important;
+      }
+      #${LAUNCHER_ID}.ts-launcher-active img {
+        opacity: 1 !important;
+        filter: none !important;
+        background: transparent !important;
+      }
+      @keyframes tsLauncherWaves {
+        0%   { box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0.55), 0 0 0 0 rgba(0,159,227,0.35); }
+        70%  { box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 14px rgba(0,159,227,0), 0 0 0 26px rgba(0,159,227,0); }
+        100% { box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0), 0 0 0 0 rgba(0,159,227,0); }
       }
       #${LAUNCHER_ID}.ts-launcher-recording {
         animation: tsLauncherPulse 1.2s infinite !important;
@@ -202,6 +213,8 @@
         0%,100% { box-shadow: 0 12px 32px rgba(239,68,68,0.45); }
         50%     { box-shadow: 0 12px 32px rgba(239,68,68,0.9); }
       }
+      /* Hard-hide the legacy prompts submenu rail — shortcuts open via popup now */
+      #${SUBMENU_ID} { display: none !important; }
       #${LAUNCHER_ID} .ts-launcher-dot {
         position: absolute !important;
         top: 4px !important;
