@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
 
 type Theme = "dark" | "light";
 
-interface Config {
+export interface Config {
   brandName: string;
   primaryColor: string;
   theme: Theme;
