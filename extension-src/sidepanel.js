@@ -1526,7 +1526,7 @@ licenseKey = key;
       '</div>' +
 
       '<div class="sp-mode-row">' +
-        '<button class="sp-mini-action" id="sp-optimize" title="Otimizar com IA">' + SP_SVG.sparkles + ' Otimizar</button>' +
+        '<button class="sp-mini-action" id="sp-optimize" title="Reescrever com IA">' + SP_SVG.sparkles + ' Reescrever</button>' +
       '</div>' +
 
       '<input type="file" id="sp-file-input" multiple style="display:none" accept="*/*">' +

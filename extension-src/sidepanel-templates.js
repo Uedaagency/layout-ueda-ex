@@ -63,7 +63,7 @@ Diretriz de Execução: Analise a página atual como um crítico de design. Iden
   },
   {
     icon: SP_MINI_ICON('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'),
-    label: "Otimizar",
+    label: "Reescrever",
     prompt: `Você é um Engenheiro de Software Principal (L6/L7) especializado em sistemas reativos de alta escala e otimização de infraestrutura frontend/backend. Seu objetivo é transformar o código atual em um estado de "World-Class Engineering".
 
 1. Auditoria e Diagnóstico de Performance (Critical Path):
