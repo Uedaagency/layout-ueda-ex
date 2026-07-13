@@ -793,12 +793,32 @@
       clearPopupSelectedSkill();
     }
 
+    // Always re-sync sidebar visibility so switching back from popup/floating
+    // to sidebar mode restores the fixed panel (body padding + iframe width).
     try {
       chrome.storage.local.get({ sidebarCollapsed: false }, (r) => {
-        setSidebarCollapsed(Boolean(r && r.sidebarCollapsed));
+        const collapsed = currentLayoutMode === "sidebar" && !flowModalActive
+          ? Boolean(r && r.sidebarCollapsed)
+          : Boolean(r && r.sidebarCollapsed);
+        setSidebarCollapsed(collapsed);
       });
     } catch (_) {
       setSidebarCollapsed(false);
+    }
+
+    // Force a reflow / iframe refresh when returning to sidebar mode — some
+    // browsers keep the previous 1×1 popup-mode layout cached on the iframe
+    // until its size changes again.
+    if (!isPopup && !flowModalActive) {
+      try {
+        const iframe = document.getElementById(IFRAME_ID);
+        if (iframe) {
+          // Toggle a harmless style to force a layout recalculation.
+          const prev = iframe.style.opacity;
+          iframe.style.opacity = "0.999";
+          requestAnimationFrame(() => { iframe.style.opacity = prev || ""; });
+        }
+      } catch (_) {}
     }
   }
 
@@ -1948,20 +1968,81 @@
     openCenteredModal("Histórico", body);
   }
 
-  function openUserModal() {
-    const body = `
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-        <div style="width:44px;height:44px;border-radius:50%;background:#38bdf8;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">U</div>
-        <div>
-          <div style="font-weight:700;color:#0f172a">Usuário</div>
-          <div style="color:#16a34a;font-size:12px">✓ Sincronizado</div>
-        </div>
-      </div>
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;font-size:12px;color:#334155">
-        Plano ativo · Gerencie sua conta no painel principal.
-      </div>`;
-    openCenteredModal("Usuário", body);
+  function formatExpiry(iso) {
+    if (!iso) return { text: "—", progress: 0, expired: false };
+    try {
+      const expires = new Date(iso).getTime();
+      const now = Date.now();
+      const diff = expires - now;
+      if (isNaN(expires)) return { text: "—", progress: 0, expired: false };
+      if (diff <= 0) return { text: "Expirado", progress: 0, expired: true };
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      // Progress bar: assume 30-day cycle
+      const total = 30 * 86400000;
+      const progress = Math.max(6, Math.min(100, Math.round((diff / total) * 100)));
+      return { text: `${days}d ${hours}h ${mins}m`, progress, expired: false };
+    } catch (_) { return { text: "—", progress: 0, expired: false }; }
   }
+
+  function openUserModal() {
+    // Placeholder shell while we hydrate from storage.
+    openCenteredModal("Usuário", '<div style="color:#64748b;font-size:13px">Carregando…</div>');
+    try {
+      chrome.storage.local.get([
+        "ql_user_name", "ql_expires_at", "ql_license_type", "ql_license_lifetime",
+        "lovable_projectId"
+      ], (r) => {
+        const modal = document.getElementById(MODAL_ID);
+        if (!modal) return;
+        const name = (r && r.ql_user_name) ? String(r.ql_user_name) : "Usuário";
+        const initial = name.trim().charAt(0).toUpperCase() || "U";
+        const isPro = (r && (r.ql_license_type === "paid" || r.ql_license_lifetime));
+        const projectId = (r && r.lovable_projectId) ? String(r.lovable_projectId) : "";
+        const projectLabel = projectId ? (projectId.substring(0, 8) + "…") : "Não sincronizado";
+        const lifetime = Boolean(r && r.ql_license_lifetime);
+        const exp = lifetime
+          ? { text: "Vitalício", progress: 100, expired: false }
+          : formatExpiry(r && r.ql_expires_at);
+        const barColor = exp.expired ? "#ef4444" : "linear-gradient(90deg,#14b8a6,#0ea5e9)";
+        const body = `
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#0ea5e9);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px">${escapeHtml(initial)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <div style="font-weight:700;color:#0f172a;font-size:15px">${escapeHtml(name)}</div>
+                ${isPro ? '<span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.5px">PRO</span>' : ''}
+              </div>
+              <div style="color:#16a34a;font-size:12px;margin-top:2px">✓ Sincronizado</div>
+            </div>
+          </div>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;font-size:12px;color:#334155;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <span style="color:#64748b">Projeto</span>
+            <span style="font-weight:600;color:#0f172a;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px">${escapeHtml(projectLabel)}</span>
+          </div>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px">
+              <span style="color:#64748b">⏳ ${lifetime ? 'Plano' : 'Plano expira em'}</span>
+              <span style="font-weight:700;color:${exp.expired ? '#dc2626' : '#0f172a'}">${escapeHtml(exp.text)}</span>
+            </div>
+            <div style="height:6px;background:#e2e8f0;border-radius:999px;overflow:hidden">
+              <div style="height:100%;width:${exp.progress}%;background:${barColor};border-radius:999px;transition:width .3s ease"></div>
+            </div>
+          </div>`;
+        // Replace only the body area inside the existing modal wrapper.
+        const bodyHost = modal.querySelector('.ts-modal-body');
+        if (bodyHost) bodyHost.innerHTML = body;
+        else {
+          // Fallback — rebuild if the modal template changed.
+          openCenteredModal("Usuário", body);
+        }
+      });
+    } catch (_) {
+      openCenteredModal("Usuário", '<div style="color:#dc2626;font-size:13px">Erro ao carregar dados.</div>');
+    }
+  }
+
 
   let statusTimer = null;
   function showStatus(text, variant) {
