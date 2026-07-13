@@ -33,14 +33,14 @@ interface Config {
   greeting: string;
 }
 
-const DEFAULTS: Config = {
-  brandName: "Painel Lovable",
-  primaryColor: "#FF6A00",
-  theme: "dark",
+export const DEFAULTS: Config = {
+  brandName: "Ueda EX",
+  primaryColor: "#009FE3",
+  theme: "light",
   badgeText: "PRO",
   footerText: "Desenvolvido por Painel Lovable",
   status: "pro",
-  greeting: "usuario@lovable.dev",
+  greeting: "Magda",
 };
 
 function hexToRgb(hex: string) {
@@ -66,18 +66,28 @@ const SP_SVG = {
     '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
   msgSq:
     '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  paperclip:
+    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
+  eye: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  download:
+    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  zap: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  sparkles:
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"/><path d="M5 14l.9 2.1L8 17l-2.1.9L5 20l-.9-2.1L2 17l2.1-.9L5 14z"/></svg>',
 };
 
 const SHORTCUTS = [
   { icon: "🛠️", label: "Corrigir Bug" },
   { icon: "♻️", label: "Refatorar" },
   { icon: "🎨", label: "Melhorar UI" },
-  { icon: "📖", label: "Explicar" },
+  { icon: "📖", label: "Explicar Código" },
   { icon: "⚡", label: "Otimizar" },
-  { icon: "🧪", label: "Testes" },
+  { icon: "🛡️", label: "Segurança" },
+  { icon: "🧪", label: "Criar Teste" },
+  { icon: "🧮", label: "Responsividade" },
 ];
 
-function buildSrcDoc(cfg: Config) {
+export function buildSrcDoc(cfg: Config) {
   const rgb = hexToRgb(cfg.primaryColor);
   const hover = adjust(cfg.primaryColor, -12);
   const rgbStr = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
@@ -98,12 +108,40 @@ function buildSrcDoc(cfg: Config) {
       --ts-brand-gradient: linear-gradient(135deg, ${cfg.primaryColor}, ${hover});
     }
     html, body { height: 100%; }
-    body { overflow: hidden; }
+    body { overflow: hidden; animation: none; }
+    body.sp-light {
+      --ql-accent: var(--ts-brand-primary);
+      --ql-accent-hover: var(--ts-brand-primary-hover);
+      --ql-accent-soft: rgba(${rgbStr}, 0.10);
+      --ql-accent-glow: rgba(${rgbStr}, 0.24);
+      --ql-accent-subtle: rgba(${rgbStr}, 0.10);
+    }
+    body.sp-light .sp-header { background:#000; border-bottom:1px solid rgba(0,0,0,0.04); }
+    body.sp-light .sp-brand-text { color:#fff !important; text-transform:none; }
+    body.sp-light .sp-badge { background:var(--ts-brand-primary) !important; color:#00131f !important; border-radius:8px; }
+    body.sp-light .sp-body { background:#fff; }
+    body.sp-light .sp-profile-card { background:#f5f5f6; border-color:rgba(0,0,0,0.10); border-radius:12px; }
+    body.sp-light .sp-sync-ok { color:#10c978; }
+    body.sp-light .sp-trial-countdown { background:rgba(255,255,255,0.70); border-color:rgba(0,0,0,0.08); }
+    body.sp-light .sp-tabs { background:#f4f4f5; border-color:rgba(0,0,0,0.08); border-radius:10px; }
+    body.sp-light .sp-tab.sp-tab-active { background:rgba(${rgbStr},0.10); color:var(--ts-brand-primary); }
+    body.sp-light .sp-tab-badge { background:var(--ts-brand-primary); color:#fff; }
+    body.sp-light .sp-chip-modern { background:#fff; border-color:rgba(200,76,255,0.16); color:#15151d; }
+    body.sp-light .sp-chip-modern:hover { background:#fff; border-color:rgba(${rgbStr},0.28); }
+    body.sp-light .sp-chip-icon { background:rgba(200,76,255,0.12); border-color:rgba(200,76,255,0.16); }
+    body.sp-light .sp-compose-card { background:radial-gradient(circle at top left, rgba(200,76,255,0.16), transparent 34%), #fff; border-color:rgba(200,76,255,0.10); box-shadow:none; }
+    body.sp-light .sp-textarea-modern::placeholder { color:#b8a9c8; }
+    body.sp-light .sp-compose-toolbar { border-top:1px solid rgba(200,76,255,0.10); }
+    body.sp-light .sp-icon-tool { background:#fff; border-color:transparent; color:#4b5563; }
+    body.sp-light .sp-send-modern { background:var(--ts-brand-primary); box-shadow:0 12px 34px rgba(${rgbStr},0.30); }
+    body.sp-light .sp-mini-action { background:transparent; border-color:transparent; color:#111827; }
+    body.sp-light .sp-footer { border-top:1px solid rgba(200,76,255,.10); background:#fff; }
+    body.sp-light .sp-footer-badge { background:#fff; border-color:rgba(0,0,0,.18); color:#0a0a0a !important; }
   `;
 
   const shortcutsHtml = SHORTCUTS.map(
     (s) =>
-      `<button class="sp-shortcut-chip"><span class="sp-chip-icon">${s.icon}</span><span class="sp-chip-label">${s.label}</span></button>`,
+      `<button class="sp-chip sp-chip-modern"><span class="sp-chip-icon">${s.icon}</span><span>${s.label}</span></button>`,
   ).join("");
 
   const header = `
@@ -117,6 +155,14 @@ function buildSrcDoc(cfg: Config) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
       </div>
+    </div>
+  `;
+
+  const tabs = `
+    <div class="sp-tabs">
+      <button class="sp-tab sp-tab-active" data-tab="prompt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Prompt</button>
+      <button class="sp-tab" data-tab="skills"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/></svg> Skills</button>
+      <button class="sp-tab" data-tab="history"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Histórico <span class="sp-tab-badge">3</span></button>
     </div>
   `;
 
@@ -140,31 +186,43 @@ function buildSrcDoc(cfg: Config) {
           </button>
         </div>
       </div>
-      <div class="sp-sync-status sp-sync-ok">✅ Sincronizado com Lovable</div>
+      <div class="sp-sync-status sp-sync-ok">✅ Sincronizado! Projeto: f4f7e3...</div>
+      <div class="sp-trial-countdown" style="display:flex">
+        <div class="sp-countdown-row"><span>⏳</span><span class="sp-countdown-label">Plano expira em</span><span class="sp-countdown-time">29d 23h 7m</span></div>
+        <div class="sp-trial-bar"><div class="sp-trial-bar-fill" style="width:88%"></div></div>
+      </div>
     </div>
 
-    <textarea class="sp-textarea" rows="3" placeholder="Digite seu comando..." spellcheck="false"></textarea>
-    <div class="sp-action-bar">
-      <div class="sp-action-left">
-        <label class="sp-toggle"><input type="checkbox"><span class="sp-toggle-slider"></span></label>
-        <span class="sp-toggle-label">Plano</span>
+    ${tabs}
+
+    <div id="sp-tab-content">
+      <div class="sp-composer-shell">
+        <div class="sp-shortcuts-grid sp-shortcuts-modern" id="sp-chips">${shortcutsHtml}</div>
+        <div class="sp-compose-card">
+          <textarea class="sp-textarea sp-textarea-modern" rows="5" placeholder="O que vamos criar hoje?" spellcheck="false"></textarea>
+          <div class="sp-attach-preview" style="display:flex">
+            <div class="sp-attach-item">
+              <div class="sp-attach-icon">📄</div>
+              <div class="sp-attach-info"><span class="sp-attach-name">UEDA EX.zip</span><span class="sp-attach-size">238.1 KB</span></div>
+            </div>
+          </div>
+          <div class="sp-compose-toolbar">
+            <div class="sp-compose-tools">
+              <button class="sp-icon-tool" title="Anexar imagem/arquivo">${SP_SVG.paperclip}</button>
+              <button class="sp-icon-tool" title="Ditar por voz">${SP_SVG.mic}</button>
+              <button class="sp-icon-tool" title="Ativar Escudo">${SP_SVG.shield}</button>
+              <button class="sp-icon-tool" title="Remover Marca de Água">${SP_SVG.eye}</button>
+              <button class="sp-icon-tool" title="Baixar todos os arquivos">${SP_SVG.download}</button>
+              <button class="sp-icon-tool" title="Inserir Skill">${SP_SVG.zap}</button>
+              <button class="sp-icon-tool" title="Criar Projeto no Lovable"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></button>
+            </div>
+            <button class="sp-send-modern" title="Enviar">➜</button>
+          </div>
+          <div class="sp-log"></div>
+        </div>
+        <div class="sp-mode-row"><button class="sp-mini-action" title="Otimizar com IA">${SP_SVG.sparkles} Otimizar</button></div>
       </div>
-      <div class="sp-action-center">
-        <button class="sp-tool-btn" title="Anexar imagem">📎</button>
-        <button class="sp-tool-btn" title="Ditar comando">${SP_SVG.mic}</button>
-        <button class="sp-tool-btn" title="Ativar escudo">${SP_SVG.shield}</button>
-        <button class="sp-tool-btn" title="Chat padrão">${SP_SVG.msgSq}</button>
-        <button class="sp-tool-btn" title="Remove Watermark">👁️</button>
-        <button class="sp-tool-btn" title="Baixar arquivos">📥</button>
-      </div>
-      <button class="sp-send-btn">Enviar</button>
     </div>
-
-    <span class="sp-shortcuts-title">ATALHOS RÁPIDOS</span>
-    <div class="sp-shortcuts-grid">${shortcutsHtml}</div>
-
-    <button class="sp-watermark-btn">🚫 Remover Marca de Água</button>
-    <button class="sp-watermark-btn" style="background:linear-gradient(135deg,rgba(245,158,11,0.14),rgba(217,119,6,0.08));border-color:rgba(245,158,11,0.35);color:#fbbf24;margin-top:6px">🌐 Publicar Projeto</button>
   `;
 
   const footer = `
@@ -173,19 +231,9 @@ function buildSrcDoc(cfg: Config) {
     </div>
   `;
 
-  const extraCss = `
-    .sp-shortcut-chip { display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; border-radius:8px; border:1px solid var(--ql-border); background:var(--ql-bg-surface); color:var(--ql-text-secondary); cursor:pointer; transition:all .2s; font-family:inherit; }
-    .sp-shortcut-chip:hover { border-color: rgba(var(--ts-brand-primary-rgb),0.35); color: var(--ql-accent); background: var(--ql-accent-subtle); }
-    .sp-chip-icon { font-size:16px; }
-    .sp-chip-label { font-size:10px; font-weight:600; }
-    .sp-footer { padding:10px 14px; border-top:1px solid var(--ql-border); background:var(--ql-bg-elevated); text-align:center; }
-    .sp-footer-badge { font-size:10px; color:var(--ql-text-muted); font-weight:600; letter-spacing:.04em; }
-  `;
-
   return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
 <style>${sidepanelCss}</style>
 <style>${override}</style>
-<style>${extraCss}</style>
 </head>
 <body class="${cfg.theme === "light" ? "sp-light" : ""}">
 ${header}
@@ -233,11 +281,11 @@ function ConfigPreview() {
         <SettingsPanel cfg={cfg} update={update} />
         <div className="flex flex-col items-center gap-3 lg:sticky lg:top-6 lg:self-start">
           <div className="text-xs font-medium text-muted-foreground">
-            Preview do painel lateral (380×720)
+            Preview do painel lateral (380×951)
           </div>
           <div
-            className="overflow-hidden rounded-2xl border border-border shadow-2xl"
-            style={{ width: 380, height: 720, background: "#000" }}
+            className="overflow-hidden rounded-md border border-border shadow-2xl"
+            style={{ width: 380, height: 951 }}
           >
             <iframe
               title="Preview da extensão"
