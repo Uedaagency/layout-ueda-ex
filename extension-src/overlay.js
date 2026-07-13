@@ -580,6 +580,12 @@
 
   let currentLayoutMode = "popup"; // "sidebar" | "popup"
   let flowModalActive = false;
+  let overlayFeaturesDisabled = false; // per-host toggle (keeps launcher visible)
+  function tsCurrentHost() { try { return String(location.hostname || "").toLowerCase(); } catch (_) { return ""; } }
+  function tsIsHostDisabled(list) {
+    const h = tsCurrentHost();
+    return Array.isArray(list) && !!h && list.indexOf(h) !== -1;
+  }
   // Built-in fallback prompts — used if iframe templates not yet received.
   const DEFAULT_PROMPTS = [
     { label: "Corrigir Bug",        icon: "🐛", prompt: "Identifique e corrija o bug deste código, explicando a causa raiz e a solução." },
@@ -673,9 +679,12 @@
     if (root) {
       root.classList.toggle("ts-flow-modal-mode", flowModalActive);
       root.classList.toggle("ts-popup-mode", isPopup && !flowModalActive);
+      root.classList.toggle("ts-overlay-disabled", overlayFeaturesDisabled);
+      if (overlayFeaturesDisabled) root.style.setProperty("display", "none", "important");
+      else root.style.removeProperty("display");
     }
 
-    if (document.body) document.body.classList.toggle("ts-native-chat-active", isPopup && !flowModalActive);
+    if (document.body) document.body.classList.toggle("ts-native-chat-active", isPopup && !flowModalActive && !overlayFeaturesDisabled);
 
     if (flowModalActive) {
       removeLauncher();
@@ -684,9 +693,14 @@
       clearPopupSelectedSkill();
     } else if (isPopup) {
       buildLauncher();
-      installNativeButtonInterceptors();
-      updateComposerWrapMark();
-      updateNativeBadge();
+      if (!overlayFeaturesDisabled) {
+        installNativeButtonInterceptors();
+        updateComposerWrapMark();
+        updateNativeBadge();
+      } else {
+        removeNativeBadge();
+        clearComposerWrapMark();
+      }
     } else {
       removeLauncher();
       removeNativeBadge();
@@ -1318,14 +1332,16 @@
   };
 
   const MAIN_ITEMS = [
-    { action: "user",        icon: LICON.user,       label: "Usuário" },
-    { action: "prompts",     icon: LICON.wrench,     label: "Atalhos" },
-    { action: "optimize",    icon: LICON.sparkles,   label: "Otimizar" },
-    { action: "skill",       icon: LICON.wand,       label: "Inserir Skill" },
-    { action: "new-project", icon: LICON.filePlus,   label: "Criar projeto novo" },
-    { action: "download",    icon: LICON.download,   label: "Baixar projeto" },
-    { action: "watermark",   icon: LICON.badgeX,     label: "Remover marca d'água" },
-    { action: "history",     icon: LICON.history,    label: "Histórico" },
+    { action: "user",         icon: LICON.user,       label: "Usuário" },
+    { action: "prompts",      icon: LICON.wrench,     label: "Atalhos" },
+    { action: "optimize",     icon: LICON.sparkles,   label: "Otimizar" },
+    { action: "skill",        icon: LICON.wand,       label: "Inserir Skill" },
+    { action: "new-project",  icon: LICON.filePlus,   label: "Criar projeto novo" },
+    { action: "download",     icon: LICON.download,   label: "Baixar projeto" },
+    { action: "watermark",    icon: LICON.badgeX,     label: "Remover marca d'água" },
+    { action: "history",      icon: LICON.history,    label: "Histórico" },
+    { action: "sidebar",      icon: LICON.panelRight, label: "Painel lateral" },
+    { action: "toggle-here",  icon: LICON.badgeX,     label: "Desativar aqui", dynamic: "toggle" },
   ];
 
   // Determine which side of the preview the launcher is on, to align the
@@ -1431,12 +1447,14 @@
     // Companion white labels panel
     const labels = document.createElement("div");
     labels.id = LABELS_ID;
-    labels.innerHTML = MAIN_ITEMS.map((it) => (
-      `<button type="button" class="ts-label-row" data-action="${it.action}">` +
+    labels.innerHTML = MAIN_ITEMS.map((it) => {
+      let lbl = it.label;
+      if (it.dynamic === "toggle") lbl = overlayFeaturesDisabled ? "Ativar aqui" : "Desativar aqui";
+      return `<button type="button" class="ts-label-row" data-action="${it.action}">` +
         `<span class="ts-label-ico">${it.icon}</span>` +
-        `<span class="ts-label-text">${escapeHtml(it.label)}</span>` +
-      `</button>`
-    )).join("");
+        `<span class="ts-label-text">${escapeHtml(lbl)}</span>` +
+      `</button>`;
+    }).join("");
     document.body.appendChild(labels);
     positionLabelsPanel(labels);
 
@@ -1656,6 +1674,21 @@
       try { window.open("https://lovable.dev/", "_blank"); } catch (_) {}
       showStatus("🆕 Abrindo Lovable para criar um novo projeto…");
       closeMenu();
+    } else if (action === "toggle-here") {
+      const host = tsCurrentHost();
+      try {
+        chrome.storage.local.get({ tsExtensionDisabledHosts: [] }, (r) => {
+          const list = Array.isArray(r && r.tsExtensionDisabledHosts) ? r.tsExtensionDisabledHosts.slice() : [];
+          const i = list.indexOf(host);
+          if (i === -1) list.push(host); else list.splice(i, 1);
+          chrome.storage.local.set({ tsExtensionDisabledHosts: list }, () => {
+            overlayFeaturesDisabled = tsIsHostDisabled(list);
+            refreshOverlayMode();
+            showStatus(overlayFeaturesDisabled ? "🔕 Extensão desativada neste site" : "🔔 Extensão ativada neste site", "success");
+            closeMenu();
+          });
+        });
+      } catch (_) { closeMenu(); }
     }
   }
 
@@ -2095,19 +2128,9 @@
         }, true);
       });
     }
-    const mic = findNativeMicButton();
-    if (mic && !mic[TS_BOUND_FLAG]) {
-      mic[TS_BOUND_FLAG] = true;
-      ["pointerdown","mousedown","click"].forEach((t) => {
-        mic.addEventListener(t, (ev) => {
-          if (!isPopupNativeModeActive()) return;
-          ev.preventDefault();
-          ev.stopPropagation();
-          if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
-          if (t === "click") togglePopupVoice();
-        }, true);
-      });
-    }
+    // Native microphone: intentionally NOT intercepted — the Lovable mic must
+    // keep working as-is. (Extension mic disabled per user request.)
+    // const mic = findNativeMicButton(); ...
     const send = findNativeSendButton();
     if (send && !send[TS_BOUND_FLAG]) {
       send[TS_BOUND_FLAG] = true;
@@ -2140,15 +2163,9 @@
               target.closest(`#${SUBMENU_ID}`) || target.closest(`#${LAUNCHER_ID}`)) return;
           const btn = target.closest("button, label");
           if (!btn) return;
-          const mic = findNativeMicButton();
           const attach = findNativeAttachButton();
           const send = findNativeSendButton();
-          if (mic && (btn === mic || mic.contains(btn))) {
-            e.preventDefault(); e.stopPropagation();
-            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-            if (t === "click") togglePopupVoice();
-            return;
-          }
+          // Native microphone left untouched — Lovable handles voice input.
           if (attach && (btn === attach || attach.contains(btn))) {
             e.preventDefault(); e.stopPropagation();
             if (e.stopImmediatePropagation) e.stopImmediatePropagation();
@@ -2425,8 +2442,9 @@
     injectGlobalStyles();
     buildOverlay();
     try {
-      chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "popup", ql_license_valid: false, tsModeChoicePending: false }, (r) => {
+      chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "popup", ql_license_valid: false, tsModeChoicePending: false, tsExtensionDisabledHosts: [] }, (r) => {
         flowModalActive = !(r && r.ql_license_valid) || Boolean(r && r.tsModeChoicePending);
+        overlayFeaturesDisabled = tsIsHostDisabled(r && r.tsExtensionDisabledHosts);
         applyLayoutMode((r && r.tsExtensionLayoutMode) || "popup");
         applyCollapsedState(Boolean(r && r.sidebarCollapsed));
       });
@@ -2493,6 +2511,10 @@
       if (area !== "local") return;
       if (changes.tsExtensionLayoutMode) applyLayoutMode(changes.tsExtensionLayoutMode.newValue || "popup");
       if (changes.sidebarCollapsed) applyCollapsedState(Boolean(changes.sidebarCollapsed.newValue));
+      if (changes.tsExtensionDisabledHosts) {
+        overlayFeaturesDisabled = tsIsHostDisabled(changes.tsExtensionDisabledHosts.newValue);
+        refreshOverlayMode();
+      }
       if (changes.ql_license_valid || changes.tsModeChoicePending) {
         try {
           chrome.storage.local.get({ ql_license_valid: false, tsModeChoicePending: false }, (r) => {
