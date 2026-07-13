@@ -1377,26 +1377,53 @@
 
   let hoverSubmenuTimer = null;
 
+  function positionLabelsPanel(panel) {
+    const menu = document.getElementById(MENU_ID);
+    if (!menu) return;
+    const anchor = getMenuAnchor();
+    const mRect = menu.getBoundingClientRect();
+    const gap = 12;
+    ["left","right","top","bottom"].forEach((p) => panel.style.setProperty(p, "auto", "important"));
+    if (anchor.hAlign === "right") {
+      panel.style.setProperty("right", Math.max(8, window.innerWidth - mRect.left + gap) + "px", "important");
+    } else {
+      panel.style.setProperty("left", Math.max(8, mRect.right + gap) + "px", "important");
+    }
+    panel.style.setProperty("top", Math.max(8, mRect.top) + "px", "important");
+  }
+
   function openMenu() {
     const existing = document.getElementById(MENU_ID);
     if (existing) existing.remove();
+    const existingLbl = document.getElementById(LABELS_ID);
+    if (existingLbl) existingLbl.remove();
     closeSubmenu();
 
     const menu = document.createElement("div");
     menu.id = MENU_ID;
     menu.setAttribute("role", "menu");
-    menu.innerHTML = MAIN_ITEMS.map((it, i) => {
-      const chev = it.isPrompts ? `<span class="ts-fab-chevron">${LICON.chevronL}</span>` : "";
+    const toggleBtn = `<button type="button" class="ts-rail-toggle" data-rail-toggle aria-label="Alternar rótulos">${LICON.chevronR}</button>`;
+    menu.innerHTML = toggleBtn + MAIN_ITEMS.map((it, i) => {
       const badge = it.action === "notifications" ? `<span class="ts-fab-badge" data-ts-notif-badge style="display:none">0</span>` : "";
       return `<button type="button" class="ts-fab-item ${it.isPrompts ? "ts-fab-prompts" : ""}" data-action="${it.action}" style="animation-delay:${i * 40}ms">` +
         `<span class="ts-fab-circle">${it.icon}${badge}</span>` +
-        `<span class="ts-fab-label">${escapeHtml(it.label)}</span>` +
-        chev +
       `</button>`;
     }).join("");
     document.body.appendChild(menu);
     menu.classList.add("ts-floating-menu-open");
     positionMenuRelativeToLauncher(menu);
+
+    // Companion white labels panel
+    const labels = document.createElement("div");
+    labels.id = LABELS_ID;
+    labels.innerHTML = MAIN_ITEMS.map((it) => (
+      `<button type="button" class="ts-label-row" data-action="${it.action}">` +
+        `<span class="ts-label-ico">${it.icon}</span>` +
+        `<span class="ts-label-text">${escapeHtml(it.label)}</span>` +
+      `</button>`
+    )).join("");
+    document.body.appendChild(labels);
+    positionLabelsPanel(labels);
 
     isFloatingMenuOpen = true;
     const b = document.getElementById(LAUNCHER_ID);
@@ -1405,35 +1432,56 @@
     console.log("[TS Popup] Menu open:", isFloatingMenuOpen);
     checkUnreadNotifications();
 
-    menu.querySelectorAll("[data-action]").forEach((btn) => {
+    const highlightRow = (action, on) => {
+      const row = labels.querySelector(`.ts-label-row[data-action="${action}"]`);
+      if (row) row.classList.toggle("ts-active", !!on);
+    };
+
+    // Rail toggle collapses/expands the labels panel
+    const toggleEl = menu.querySelector("[data-rail-toggle]");
+    if (toggleEl) {
+      toggleEl.addEventListener("click", (e) => {
+        e.preventDefault(); e.stopPropagation();
+        labels.classList.toggle("ts-hidden");
+      });
+    }
+
+    const bindAction = (btn) => {
       const action = btn.getAttribute("data-action");
       btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         handleMenuAction(action);
       });
-      if (action === "prompts") {
-        btn.addEventListener("mouseenter", () => {
+      btn.addEventListener("mouseenter", () => {
+        highlightRow(action, true);
+        if (action === "prompts") {
           if (hoverSubmenuTimer) clearTimeout(hoverSubmenuTimer);
           if (!document.getElementById(SUBMENU_ID)) openPromptsSubmenu();
-        });
-        btn.addEventListener("mouseleave", () => {
+        } else {
+          closeSubmenu();
+        }
+      });
+      btn.addEventListener("mouseleave", () => {
+        highlightRow(action, false);
+        if (action === "prompts") {
           if (hoverSubmenuTimer) clearTimeout(hoverSubmenuTimer);
           hoverSubmenuTimer = setTimeout(() => {
             const sub = document.getElementById(SUBMENU_ID);
             if (sub && !sub.matches(":hover")) closeSubmenu();
           }, 220);
-        });
-      } else {
-        btn.addEventListener("mouseenter", () => { closeSubmenu(); });
-      }
-    });
+        }
+      });
+    };
+    menu.querySelectorAll(".ts-fab-item[data-action]").forEach(bindAction);
+    labels.querySelectorAll(".ts-label-row[data-action]").forEach(bindAction);
 
     const onDocClick = (ev) => {
       const launcher = document.getElementById(LAUNCHER_ID);
       const sub = document.getElementById(SUBMENU_ID);
       const m = document.getElementById(MENU_ID);
+      const lp = document.getElementById(LABELS_ID);
       if (m && m.contains(ev.target)) return;
+      if (lp && lp.contains(ev.target)) return;
       if (sub && sub.contains(ev.target)) return;
       if (launcher && launcher.contains(ev.target)) return;
       closeMenu();
@@ -1444,12 +1492,14 @@
     const reposition = () => {
       if (!isFloatingMenuOpen) return;
       positionMenuRelativeToLauncher(menu);
+      positionLabelsPanel(labels);
       const s = document.getElementById(SUBMENU_ID);
       if (s) positionSubmenuRelativeToMenu(s);
     };
     window.addEventListener("resize", reposition);
     window.addEventListener("scroll", reposition, true);
   }
+
 
   function safePromptIcon(raw) {
     const s = String(raw || "").trim();
