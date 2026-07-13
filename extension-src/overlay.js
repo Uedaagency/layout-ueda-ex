@@ -277,10 +277,15 @@
         visibility: visible !important;
         margin: 0 !important;
         padding: 10px 8px !important;
+        width: 54px !important;
+        min-width: 54px !important;
+        max-width: 54px !important;
+        box-sizing: border-box !important;
         background: linear-gradient(180deg, #0b1a2a 0%, #061321 100%) !important;
         border: 1px solid rgba(255,255,255,0.08) !important;
         border-radius: 999px !important;
         box-shadow: 0 18px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04) inset !important;
+        overflow: visible !important;
         transition:
           left 260ms cubic-bezier(0.22, 1, 0.36, 1),
           right 260ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -301,8 +306,13 @@
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        gap: 10px !important;
+        gap: 0 !important;
         padding: 0 !important;
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        max-width: 38px !important;
+        flex: 0 0 38px !important;
         background: transparent !important;
         color: #ffffff !important;
         border: none !important;
@@ -320,6 +330,7 @@
         font-family: inherit !important;
         text-align: left !important;
         white-space: nowrap !important;
+        overflow: visible !important;
         position: relative !important;
         transition:
           transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -371,6 +382,8 @@
       }
       #${MENU_ID} .ts-fab-circle, #${SUBMENU_ID} .ts-fab-circle {
         width: 38px !important; height: 38px !important;
+        min-width: 38px !important; max-width: 38px !important;
+        min-height: 38px !important; max-height: 38px !important;
         border-radius: 999px !important;
         background: linear-gradient(180deg,#0f2a42,#08192b) !important;
         color: rgba(255,255,255,0.9) !important;
@@ -378,9 +391,13 @@
         align-items: center !important;
         justify-content: center !important;
         font-size: 15px !important;
-        flex: 0 0 auto !important;
+        line-height: 1 !important;
+        flex: 0 0 38px !important;
         box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important;
         border: 1px solid rgba(255,255,255,0.18) !important;
+        overflow: hidden !important;
+        text-overflow: clip !important;
+        white-space: nowrap !important;
         transition: box-shadow 200ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), background 200ms ease, color 200ms ease !important;
       }
       #${MENU_ID} .ts-fab-item:hover .ts-fab-circle,
@@ -391,6 +408,7 @@
       }
       #${MENU_ID} .ts-fab-circle svg, #${SUBMENU_ID} .ts-fab-circle svg {
         width: 18px !important; height: 18px !important; stroke: currentColor !important;
+        flex: 0 0 18px !important;
       }
       #${MENU_ID} .ts-fab-item.ts-fab-prompts .ts-fab-circle {
         background: linear-gradient(180deg,#0f2a42,#08192b) !important;
@@ -1290,7 +1308,7 @@
       menu.style.setProperty("top", Math.max(8, rect.bottom + gap) + "px", "important");
     }
     // Constrain inside preview bounds
-    menu.style.setProperty("max-width", Math.max(160, bounds.right - bounds.left - 16) + "px", "important");
+    // Menu width is fixed by CSS (54px) — no max-width override needed.
   }
 
   function positionSubmenuRelativeToMenu(sub) {
@@ -1387,6 +1405,14 @@
     window.addEventListener("scroll", reposition, true);
   }
 
+  function safePromptIcon(raw) {
+    const s = String(raw || "").trim();
+    // Reject any HTML/SVG markup — only allow short plain text/emoji.
+    if (!s || /[<>]/.test(s)) return "⚡";
+    // Use grapheme-safe slice for emoji.
+    const chars = Array.from(s);
+    return chars.slice(0, 2).join("") || "⚡";
+  }
   function openPromptsSubmenu() {
     closeSubmenu();
     const menu = document.getElementById(MENU_ID);
@@ -1397,7 +1423,7 @@
     sub.innerHTML = list.length
       ? list.map((t, i) =>
           `<button class="ts-fab-item" data-prompt-index="${i}" style="animation-delay:${i * 25}ms" title="${escapeHtml(t.label)}">` +
-            `<span class="ts-fab-circle">${escapeHtml(t.icon || "⚡")}</span>` +
+            `<span class="ts-fab-circle">${escapeHtml(safePromptIcon(t.icon))}</span>` +
             `<span class="ts-fab-label">${escapeHtml(t.label)}</span>` +
           `</button>`
         ).join("")
