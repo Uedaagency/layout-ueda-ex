@@ -580,6 +580,12 @@
 
   let currentLayoutMode = "popup"; // "sidebar" | "popup"
   let flowModalActive = false;
+  let overlayFeaturesDisabled = false; // per-host toggle (keeps launcher visible)
+  function tsCurrentHost() { try { return String(location.hostname || "").toLowerCase(); } catch (_) { return ""; } }
+  function tsIsHostDisabled(list) {
+    const h = tsCurrentHost();
+    return Array.isArray(list) && !!h && list.indexOf(h) !== -1;
+  }
   // Built-in fallback prompts — used if iframe templates not yet received.
   const DEFAULT_PROMPTS = [
     { label: "Corrigir Bug",        icon: "🐛", prompt: "Identifique e corrija o bug deste código, explicando a causa raiz e a solução." },
