@@ -281,7 +281,10 @@ export function buildSrcDoc(cfg: Config, mode: ViewMode = "fixed") {
     </div>
   `;
 
+  const footer = `<div class="sp-footer"><div class="sp-footer-badge">${escapeHtml(cfg.footerText)}</div></div>`;
+
   let body = "";
+
   if (mode === "entry") body = `${header}<div class="sp-body">${licenseGate}</div>${footer}`;
   else if (mode === "choice") body = `${header}<div class="sp-body">${choiceScreen}</div>${footer}`;
   else body = `${header}<div class="sp-body">${mainUI}</div>${footer}`;
