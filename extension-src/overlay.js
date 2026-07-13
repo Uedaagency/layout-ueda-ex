@@ -1456,22 +1456,9 @@
       });
       btn.addEventListener("mouseenter", () => {
         highlightRow(action, true);
-        if (action === "prompts") {
-          if (hoverSubmenuTimer) clearTimeout(hoverSubmenuTimer);
-          if (!document.getElementById(SUBMENU_ID)) openPromptsSubmenu();
-        } else {
-          closeSubmenu();
-        }
       });
       btn.addEventListener("mouseleave", () => {
         highlightRow(action, false);
-        if (action === "prompts") {
-          if (hoverSubmenuTimer) clearTimeout(hoverSubmenuTimer);
-          hoverSubmenuTimer = setTimeout(() => {
-            const sub = document.getElementById(SUBMENU_ID);
-            if (sub && !sub.matches(":hover")) closeSubmenu();
-          }, 220);
-        }
       });
     };
     menu.querySelectorAll(".ts-fab-item[data-action]").forEach(bindAction);
