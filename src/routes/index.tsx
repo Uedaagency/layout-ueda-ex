@@ -87,10 +87,11 @@ const SHORTCUTS = [
   { icon: "🧮", label: "Responsividade" },
 ];
 
-export function buildSrcDoc(cfg: Config) {
+export function buildSrcDoc(cfg: Config, mode: ViewMode = "fixed") {
   const rgb = hexToRgb(cfg.primaryColor);
   const hover = adjust(cfg.primaryColor, -12);
   const rgbStr = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+
 
   const statusBadge =
     cfg.status === "trial"
