@@ -300,17 +300,17 @@
       #${MENU_ID} .ts-fab-item, #${SUBMENU_ID} .ts-fab-item {
         display: inline-flex !important;
         align-items: center !important;
+        justify-content: center !important;
         gap: 10px !important;
         padding: 0 !important;
         background: transparent !important;
         color: #ffffff !important;
         border: none !important;
-        border-radius: 0 !important;
+        border-radius: 999px !important;
         font-size: 13px !important;
         font-weight: 600 !important;
         cursor: pointer !important;
         backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
         box-shadow: none !important;
         opacity: 1 !important;
         visibility: visible !important;
@@ -320,22 +320,43 @@
         font-family: inherit !important;
         text-align: left !important;
         white-space: nowrap !important;
+        position: relative !important;
         transition:
           transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
           opacity 200ms ease !important;
       }
       #${MENU_ID} .ts-fab-label, #${SUBMENU_ID} .ts-fab-label {
-        padding: 6px 10px !important;
+        position: absolute !important;
+        top: 50% !important;
+        transform: translateY(-50%) translateX(6px) !important;
+        padding: 8px 14px !important;
         border-radius: 999px !important;
-        background: rgba(15, 15, 20, 0.42) !important;
-        backdrop-filter: blur(10px) saturate(140%) !important;
-        -webkit-backdrop-filter: blur(10px) saturate(140%) !important;
-        color: #fff !important;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.45) !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
+        background: #ffffff !important;
+        color: #0f2a42 !important;
+        border: 1px solid rgba(15,42,66,0.08) !important;
         line-height: 1.2 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
+        font-size: 12px !important;
         letter-spacing: 0.01em !important;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.18) !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity 160ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+      }
+      #${MENU_ID}[data-align="right"] .ts-fab-label,
+      #${SUBMENU_ID}[data-align="right"] .ts-fab-label {
+        right: calc(100% + 14px) !important;
+        left: auto !important;
+      }
+      #${MENU_ID}[data-align="left"] .ts-fab-label,
+      #${SUBMENU_ID}[data-align="left"] .ts-fab-label {
+        left: calc(100% + 14px) !important;
+        right: auto !important;
+      }
+      #${MENU_ID} .ts-fab-item:hover .ts-fab-label,
+      #${SUBMENU_ID} .ts-fab-item:hover .ts-fab-label {
+        opacity: 1 !important;
+        transform: translateY(-50%) translateX(0) !important;
       }
       #${MENU_ID}[data-align="left"] .ts-fab-item,
       #${SUBMENU_ID}[data-align="left"] .ts-fab-item { flex-direction: row !important; }
