@@ -114,7 +114,7 @@ Explique o impacto da correção na lógica de negócio e como validar que a vul
 Instrução de Execução: Não ignore falhas "teóricas". Trate cada brecha como um potencial ponto de entrada para um ataque real. Entregue um código blindado contra os ataques mais modernos da web.`
   },
   {
-    icon: "🧪",
+    icon: SP_MINI_ICON('<path d="M9 3h6"/><path d="M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/><path d="M7 15h10"/>'),
     label: "Criar Teste",
     prompt: "Desenvolva uma suíte abrangente de testes unitários para este código, cobrindo caminhos felizes e casos de borda. Utilize frameworks modernos e garanta uma alta cobertura de código, seguindo as melhores práticas de Clean Testing e isolamento de dependências."
   },
