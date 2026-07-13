@@ -75,7 +75,7 @@ function updateSidebarCollapseFloatingButtonUI(collapsed) {
   const button = document.getElementById("ts-sidebar-collapse-floating-button");
   if (!button) return;
 
-  const layoutMode = window.__tsExtensionLayoutMode || "sidebar";
+  const layoutMode = window.__tsExtensionLayoutMode || "popup";
   if (layoutMode === "popup" || layoutMode === "floating") {
     button.style.setProperty("display", "none", "important");
     return;
@@ -129,9 +129,9 @@ sidebarButtonObserver.observe(document.documentElement, {
 });
 
 try {
-  chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "sidebar" }, (r) => {
+  chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "popup" }, (r) => {
     window.__tsSidebarCollapsed = Boolean(r && r.sidebarCollapsed);
-    window.__tsExtensionLayoutMode = (r && r.tsExtensionLayoutMode) || "sidebar";
+    window.__tsExtensionLayoutMode = (r && r.tsExtensionLayoutMode) || "popup";
     injectSidebarCollapseFloatingButton();
     updateSidebarCollapseFloatingButtonUI(window.__tsSidebarCollapsed);
   });

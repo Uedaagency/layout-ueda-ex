@@ -1183,3 +1183,239 @@ body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
 .sp-mode-sub { font-size: 11px; color: var(--ql-text-muted); text-align: center; line-height: 1.3; }
 .sp-mode-skip { background: transparent; border: none; color: var(--ql-text-muted); font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 4px; }
 .sp-mode-skip:hover { color: var(--ql-text-secondary); }
+
+/* ===== Forced first-run modal: license and mode chooser ===== */
+body.sp-license-screen,
+body.sp-mode-screen {
+  height: 100vh;
+  background: transparent !important;
+  overflow: hidden;
+  animation: none;
+}
+
+body.sp-license-screen .sp-header,
+body.sp-license-screen .sp-footer,
+body.sp-mode-screen .sp-header,
+body.sp-mode-screen .sp-footer {
+  display: none !important;
+}
+
+body.sp-license-screen .sp-body,
+body.sp-mode-screen .sp-body {
+  min-height: 100vh;
+  width: 100%;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+body.sp-license-screen .sp-license-gate,
+body.sp-mode-screen .sp-mode-chooser {
+  width: 100%;
+  max-width: 342px;
+  min-height: auto;
+  margin: 0 auto;
+  padding: 24px 21px 22px;
+  border-radius: 22px;
+  border: 1px solid rgba(45, 166, 220, 0.28);
+  background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(232,247,255,0.94));
+  box-shadow: 0 26px 70px rgba(30, 80, 110, 0.22), inset 0 1px 0 rgba(255,255,255,0.88);
+  color: #142033;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+body.sp-license-screen .sp-login-logo,
+body.sp-mode-screen .sp-mode-logo {
+  width: 52px;
+  height: 52px;
+  padding: 8px;
+  margin: 0 0 14px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 12px 26px rgba(23, 130, 188, 0.16);
+  object-fit: contain;
+}
+
+body.sp-license-screen .sp-gate-title,
+body.sp-mode-screen .sp-mode-title {
+  margin: 0 0 6px;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #142033;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+}
+
+body.sp-license-screen .sp-gate-title span,
+body.sp-mode-screen .sp-mode-title {
+  color: #05a8e8;
+}
+
+body.sp-license-screen .sp-gate-desc,
+body.sp-mode-screen .sp-mode-desc {
+  margin: 0 0 20px;
+  color: #5f6f80;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+body.sp-license-screen .sp-input {
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid rgba(28, 169, 226, 0.28);
+  background: rgba(255,255,255,0.72);
+  color: #142033;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+body.sp-license-screen .sp-input::placeholder {
+  color: #8da1b2;
+}
+
+body.sp-license-screen .sp-input:focus {
+  border-color: #06a9e9 !important;
+  box-shadow: 0 0 0 3px rgba(6, 169, 233, 0.14) !important;
+}
+
+body.sp-license-screen .sp-btn-primary {
+  height: 36px;
+  margin-top: 11px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0baee9, #047fb9) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 22px rgba(3, 136, 199, 0.24);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body.sp-license-screen .sp-gate-actions {
+  margin-top: 16px;
+  gap: 0;
+}
+
+body.sp-license-screen .sp-glass-card {
+  width: 100%;
+  min-height: 48px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border-color: rgba(30, 173, 231, 0.16);
+  background: rgba(255,255,255,0.72);
+  box-shadow: none;
+}
+
+body.sp-license-screen .sp-glass-card::before {
+  display: none;
+}
+
+body.sp-license-screen .sp-glass-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(145deg, #0aaee9, #166fe0);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(4, 127, 185, 0.18);
+}
+
+body.sp-license-screen .sp-glass-title {
+  color: #1c2d3f;
+  font-size: 11px;
+}
+
+body.sp-license-screen .sp-glass-sub {
+  color: #627487;
+  opacity: 1;
+  font-size: 10px;
+}
+
+body.sp-license-screen .sp-glass-arrow {
+  color: #7d93a6;
+}
+
+body.sp-license-screen .sp-log {
+  color: #047fb9;
+}
+
+body.sp-mode-screen .sp-mode-chooser {
+  gap: 16px;
+  padding-bottom: 20px;
+}
+
+body.sp-mode-screen .sp-mode-hero {
+  gap: 6px;
+}
+
+body.sp-mode-screen .sp-mode-grid {
+  grid-template-columns: 1fr;
+  gap: 9px;
+}
+
+body.sp-mode-screen .sp-mode-card {
+  width: 100%;
+  min-height: 74px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border-color: rgba(28, 169, 226, 0.18);
+  background: rgba(255,255,255,0.72);
+  color: #142033;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  grid-template-areas: "icon name" "icon sub";
+  column-gap: 12px;
+  row-gap: 2px;
+  text-align: left;
+}
+
+body.sp-mode-screen .sp-mode-card:hover {
+  border-color: #06a9e9;
+  background: #ffffff;
+  box-shadow: 0 12px 24px rgba(4, 127, 185, 0.14);
+}
+
+body.sp-mode-screen .sp-mode-illus {
+  grid-area: icon;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #06a9e9;
+  background: rgba(6, 169, 233, 0.09);
+}
+
+body.sp-mode-screen .sp-mode-illus svg {
+  width: 28px;
+  height: 28px;
+}
+
+body.sp-mode-screen .sp-mode-name {
+  grid-area: name;
+  align-self: end;
+  color: #142033;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+body.sp-mode-screen .sp-mode-sub {
+  grid-area: sub;
+  color: #657688;
+  text-align: left;
+  font-size: 10.5px;
+}
+
+body.sp-mode-screen .sp-mode-skip {
+  margin-top: 0;
+  color: #657688;
+}
