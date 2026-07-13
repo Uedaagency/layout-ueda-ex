@@ -663,7 +663,11 @@ function setExtensionLayoutMode(mode) {
   try {
     window.parent && window.parent.postMessage({ type: 'TS_OVERLAY_SET_LAYOUT', mode: stored }, '*');
   } catch(_) {}
-  // Update icon state
+  updateExtensionLayoutModeIcons(stored);
+}
+
+function updateExtensionLayoutModeIcons(mode) {
+  const isPopup = (mode === 'popup' || mode === 'floating');
   document.querySelectorAll('.sp-layout-btn').forEach((btn) => {
     const sb = btn.querySelector('.sp-layout-icon-sidebar');
     const fl = btn.querySelector('.sp-layout-icon-floating');
@@ -688,7 +692,7 @@ function toggleExtensionLayoutMode() {
   try {
     chrome.storage.local.get({ tsExtensionLayoutMode: 'popup' }, (r) => {
       const mode = (r && r.tsExtensionLayoutMode) || 'popup';
-    setExtensionLayoutMode(mode);
+      updateExtensionLayoutModeIcons(mode);
   });
 } catch(_) {}
 
