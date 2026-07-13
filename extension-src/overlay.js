@@ -1253,6 +1253,7 @@
     if (currentLayoutMode !== "popup") return;
     updateComposerWrapMark();
     updateNativeBadge();
+    ensureNativeChatTools();
     if (popupSelectedSkill) positionPopupSkillBadge();
     if (typeof popupAttachments !== "undefined" && popupAttachments.length) positionPopupAttachments();
     bindNativeButtonHandlers();
@@ -1261,12 +1262,14 @@
   window.addEventListener("scroll", () => {
     if (currentLayoutMode !== "popup") return;
     updateNativeBadge();
+    ensureNativeChatTools();
     if (popupSelectedSkill) positionPopupSkillBadge();
     if (typeof popupAttachments !== "undefined" && popupAttachments.length) positionPopupAttachments();
   }, true);
   window.addEventListener("resize", () => {
     if (currentLayoutMode !== "popup") return;
     updateNativeBadge();
+    ensureNativeChatTools();
     if (popupSelectedSkill) positionPopupSkillBadge();
     if (typeof popupAttachments !== "undefined" && popupAttachments.length) positionPopupAttachments();
   });
