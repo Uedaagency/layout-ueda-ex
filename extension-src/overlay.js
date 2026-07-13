@@ -301,8 +301,13 @@
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        gap: 10px !important;
+        gap: 0 !important;
         padding: 0 !important;
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        max-width: 38px !important;
+        flex: 0 0 38px !important;
         background: transparent !important;
         color: #ffffff !important;
         border: none !important;
@@ -320,6 +325,7 @@
         font-family: inherit !important;
         text-align: left !important;
         white-space: nowrap !important;
+        overflow: visible !important;
         position: relative !important;
         transition:
           transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
