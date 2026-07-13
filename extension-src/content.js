@@ -47,7 +47,7 @@ function injectSidebarCollapseFloatingButton() {
     "border: none !important",
     "border-radius: 12px 0 0 12px !important",
     "cursor: pointer !important",
-    "background: #C84CFF !important",
+    "background: #000000 !important",
     "color: #ffffff !important",
     "box-shadow: -4px 4px 14px rgba(0, 0, 0, 0.18) !important",
     "font-size: 16px !important",
