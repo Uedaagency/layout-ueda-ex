@@ -92,6 +92,52 @@
         opacity: 0 !important;
         pointer-events: none !important;
       }
+      #${ROOT_ID}.ts-flow-modal-mode {
+        position: fixed !important;
+        inset: 0 !important;
+        top: 0 !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 24px !important;
+        background: rgba(12, 18, 28, 0.36) !important;
+        backdrop-filter: blur(9px) saturate(105%) !important;
+        -webkit-backdrop-filter: blur(9px) saturate(105%) !important;
+        box-shadow: none !important;
+        transform: none !important;
+        pointer-events: auto !important;
+        overflow: hidden !important;
+      }
+      #${ROOT_ID}.ts-flow-modal-mode.ts-sidebar-collapsed {
+        transform: none !important;
+        pointer-events: auto !important;
+      }
+      #${ROOT_ID}.ts-flow-modal-mode > #${IFRAME_ID} {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        width: min(420px, calc(100vw - 40px)) !important;
+        height: min(560px, calc(100vh - 48px)) !important;
+        min-height: 0 !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        border-radius: 26px !important;
+        overflow: hidden !important;
+        background: transparent !important;
+        box-shadow: 0 34px 90px rgba(8, 16, 30, 0.30), 0 0 0 1px rgba(255,255,255,0.42) !important;
+        transform: translateY(0) scale(1) !important;
+        animation: tsModalPop 260ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+      @keyframes tsModalPop {
+        from { opacity: 0; transform: translateY(14px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
       #${IFRAME_ID} {
         width: 100% !important;
         height: 100% !important;
@@ -422,6 +468,7 @@
 
     const root = document.createElement("div");
     root.id = ROOT_ID;
+    root.classList.add("ts-flow-modal-mode");
 
     const iframe = document.createElement("iframe");
     iframe.id = IFRAME_ID;
@@ -434,7 +481,8 @@
     return root;
   }
 
-  let currentLayoutMode = "sidebar"; // "sidebar" | "popup"
+  let currentLayoutMode = "popup"; // "sidebar" | "popup"
+  let flowModalActive = false;
   // Built-in fallback prompts — used if iframe templates not yet received.
   const DEFAULT_PROMPTS = [
     { label: "Corrigir Bug",        icon: "🐛", prompt: "Identifique e corrija o bug deste código, explicando a causa raiz e a solução." },
@@ -510,7 +558,7 @@
     const sidebar = document.getElementById(ROOT_ID);
     if (sidebar) sidebar.classList.toggle("ts-sidebar-collapsed", Boolean(collapsed));
     if (!document.body) return;
-    const isPopup = currentLayoutMode === "popup";
+    const isPopup = currentLayoutMode === "popup" || flowModalActive;
     if (collapsed || isPopup) {
       document.body.classList.remove("ts-sidebar-open");
       document.documentElement.style.setProperty("--ts-sidebar-width", "0px");
@@ -522,25 +570,33 @@
 
   function applyCollapsedState(collapsed) { setSidebarCollapsed(Boolean(collapsed)); }
 
-  function applyLayoutMode(mode) {
-    currentLayoutMode = (mode === "popup" || mode === "floating") ? "popup" : "sidebar";
+  function refreshOverlayMode() {
     const root = document.getElementById(ROOT_ID);
     const isPopup = currentLayoutMode === "popup";
-    if (root) root.classList.toggle("ts-popup-mode", isPopup);
+    if (root) {
+      root.classList.toggle("ts-flow-modal-mode", flowModalActive);
+      root.classList.toggle("ts-popup-mode", isPopup && !flowModalActive);
+    }
 
-    if (document.body) document.body.classList.toggle("ts-native-chat-active", isPopup);
-    updateComposerWrapMark();
-    updateNativeBadge();
+    if (document.body) document.body.classList.toggle("ts-native-chat-active", isPopup && !flowModalActive);
 
-    if (isPopup) {
+    if (flowModalActive) {
+      removeLauncher();
+      removeNativeBadge();
+      clearComposerWrapMark();
+      clearPopupSelectedSkill();
+    } else if (isPopup) {
       buildLauncher();
       installNativeButtonInterceptors();
+      updateComposerWrapMark();
+      updateNativeBadge();
     } else {
       removeLauncher();
       removeNativeBadge();
       clearComposerWrapMark();
       clearPopupSelectedSkill();
     }
+
     try {
       chrome.storage.local.get({ sidebarCollapsed: false }, (r) => {
         setSidebarCollapsed(Boolean(r && r.sidebarCollapsed));
@@ -548,6 +604,16 @@
     } catch (_) {
       setSidebarCollapsed(false);
     }
+  }
+
+  function applyFlowModalMode(active) {
+    flowModalActive = Boolean(active);
+    refreshOverlayMode();
+  }
+
+  function applyLayoutMode(mode) {
+    currentLayoutMode = (mode === "popup" || mode === "floating") ? "popup" : "sidebar";
+    refreshOverlayMode();
   }
 
   // ===================== Popup launcher =====================
@@ -2084,12 +2150,14 @@
     injectGlobalStyles();
     buildOverlay();
     try {
-      chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "sidebar" }, (r) => {
-        applyLayoutMode((r && r.tsExtensionLayoutMode) || "sidebar");
+      chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "popup", ql_license_valid: false, tsModeChoicePending: false }, (r) => {
+        flowModalActive = !(r && r.ql_license_valid) || Boolean(r && r.tsModeChoicePending);
+        applyLayoutMode((r && r.tsExtensionLayoutMode) || "popup");
         applyCollapsedState(Boolean(r && r.sidebarCollapsed));
       });
     } catch (_) {
-      applyLayoutMode("sidebar");
+      applyFlowModalMode(true);
+      applyLayoutMode("popup");
       applyCollapsedState(false);
     }
   }
@@ -2127,8 +2195,9 @@
     if (!document.getElementById(ROOT_ID)) {
       buildOverlay();
       try {
-        chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "sidebar" }, (r) => {
-          applyLayoutMode((r && r.tsExtensionLayoutMode) || "sidebar");
+        chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "popup", ql_license_valid: false, tsModeChoicePending: false }, (r) => {
+          flowModalActive = !(r && r.ql_license_valid) || Boolean(r && r.tsModeChoicePending);
+          applyLayoutMode((r && r.tsExtensionLayoutMode) || "popup");
           applyCollapsedState(Boolean(r && r.sidebarCollapsed));
         });
       } catch (_) {}
@@ -2147,8 +2216,15 @@
   try {
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area !== "local") return;
-      if (changes.tsExtensionLayoutMode) applyLayoutMode(changes.tsExtensionLayoutMode.newValue || "sidebar");
+      if (changes.tsExtensionLayoutMode) applyLayoutMode(changes.tsExtensionLayoutMode.newValue || "popup");
       if (changes.sidebarCollapsed) applyCollapsedState(Boolean(changes.sidebarCollapsed.newValue));
+      if (changes.ql_license_valid || changes.tsModeChoicePending) {
+        try {
+          chrome.storage.local.get({ ql_license_valid: false, tsModeChoicePending: false }, (r) => {
+            applyFlowModalMode(!(r && r.ql_license_valid) || Boolean(r && r.tsModeChoicePending));
+          });
+        } catch (_) {}
+      }
     });
   } catch (_) {}
 
@@ -2265,7 +2341,7 @@
     } else if (data.type === "TS_OVERLAY_SET_LAYOUT") {
       const mode = (data.mode === "popup" || data.mode === "floating") ? "popup" : "sidebar";
       applyLayoutMode(mode);
-      try { chrome.storage.local.set({ tsExtensionLayoutMode: mode }); } catch (_) {}
+      try { chrome.storage.local.set({ tsExtensionLayoutMode: mode, tsModeChoicePending: false }); } catch (_) {}
     } else if (data.type === "TS_OVERLAY_TEMPLATES") {
       if (Array.isArray(data.templates)) {
         promptTemplates = data.templates.slice(0, 24);

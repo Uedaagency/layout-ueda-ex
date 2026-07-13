@@ -659,11 +659,15 @@ const logoutBtn = e.target.closest('.sp-logout-btn');
 function setExtensionLayoutMode(mode) {
   const isPopup = (mode === 'popup' || mode === 'floating');
   const stored = isPopup ? 'popup' : 'sidebar';
-  try { chrome.storage.local.set({ tsExtensionLayoutMode: stored }); } catch(_) {}
+  try { chrome.storage.local.set({ tsExtensionLayoutMode: stored, tsModeChoicePending: false }); } catch(_) {}
   try {
     window.parent && window.parent.postMessage({ type: 'TS_OVERLAY_SET_LAYOUT', mode: stored }, '*');
   } catch(_) {}
-  // Update icon state
+  updateExtensionLayoutModeIcons(stored);
+}
+
+function updateExtensionLayoutModeIcons(mode) {
+  const isPopup = (mode === 'popup' || mode === 'floating');
   document.querySelectorAll('.sp-layout-btn').forEach((btn) => {
     const sb = btn.querySelector('.sp-layout-icon-sidebar');
     const fl = btn.querySelector('.sp-layout-icon-floating');
@@ -674,8 +678,8 @@ function setExtensionLayoutMode(mode) {
 
 function toggleExtensionLayoutMode() {
   try {
-    chrome.storage.local.get({ tsExtensionLayoutMode: 'sidebar' }, (r) => {
-      const current = (r && r.tsExtensionLayoutMode) || 'sidebar';
+    chrome.storage.local.get({ tsExtensionLayoutMode: 'popup' }, (r) => {
+      const current = (r && r.tsExtensionLayoutMode) || 'popup';
       const isPopup = (current === 'popup' || current === 'floating');
       setExtensionLayoutMode(isPopup ? 'sidebar' : 'popup');
     });
@@ -685,10 +689,10 @@ function toggleExtensionLayoutMode() {
 }
 
 // Restore icon state on load
-try {
-  chrome.storage.local.get({ tsExtensionLayoutMode: 'sidebar' }, (r) => {
-    const mode = (r && r.tsExtensionLayoutMode) || 'sidebar';
-    setExtensionLayoutMode(mode);
+  try {
+    chrome.storage.local.get({ tsExtensionLayoutMode: 'popup' }, (r) => {
+      const mode = (r && r.tsExtensionLayoutMode) || 'popup';
+      updateExtensionLayoutModeIcons(mode);
   });
 } catch(_) {}
 
@@ -898,13 +902,25 @@ if (notifClose) {
   }
 
   // --- License Gate ---
+  function setPanelScreenState(state) {
+    try {
+      document.body.classList.toggle('sp-license-screen', state === 'license');
+      document.body.classList.toggle('sp-mode-screen', state === 'mode');
+      document.body.classList.toggle('sp-main-screen', state === 'main');
+    } catch(_) {}
+  }
+
   function showLicenseGate() {
+    setPanelScreenState('license');
+    try { chrome.storage.local.set({ tsExtensionLayoutMode: 'popup', tsModeChoicePending: false }); } catch(_) {}
     const body = document.getElementById('sp-body');
     body.innerHTML = spTemplateLicenseGate();
     document.getElementById('sp-validate-btn').addEventListener('click', validateLicense);
   }
 
   function showModeChooser() {
+    setPanelScreenState('mode');
+    try { chrome.storage.local.set({ tsExtensionLayoutMode: 'popup', tsModeChoicePending: true }); } catch(_) {}
     const body = document.getElementById('sp-body');
     if (!body) { showMainUI(); return; }
     body.innerHTML = spTemplateModeChooser();
@@ -916,7 +932,10 @@ if (notifClose) {
       });
     });
     const skip = document.getElementById('sp-mode-skip');
-    if (skip) skip.addEventListener('click', () => showMainUI());
+    if (skip) skip.addEventListener('click', () => {
+      try { setExtensionLayoutMode('popup'); } catch(_) {}
+      showMainUI();
+    });
   }
 
 
@@ -935,7 +954,7 @@ if (notifClose) {
 licenseType = data.license_type || 'paid';
 licenseLifetime = data.lifetime || false;
 licenseKey = key;
-        chrome.storage.local.set({ ql_license_valid: true, ql_license_key: key, ql_session_id: data.session_id, ql_user_name: data.user_name || null, ql_expires_at: data.expires_at || null, ql_activated_at: data.activated_at || null, ql_license_status: data.status || null, ql_license_lifetime: licenseLifetime, ql_license_type: data.license_type || 'paid', }, () => {
+        chrome.storage.local.set({ ql_license_valid: true, ql_license_key: key, ql_session_id: data.session_id, ql_user_name: data.user_name || null, ql_expires_at: data.expires_at || null, ql_activated_at: data.activated_at || null, ql_license_status: data.status || null, ql_license_lifetime: licenseLifetime, ql_license_type: data.license_type || 'paid', tsExtensionLayoutMode: 'popup', tsModeChoicePending: true }, () => {
           log.className = 'sp-log sp-log-success'; log.textContent = '✓ ' + data.message;
           startHeartbeat(key);
           setTimeout(() => { showModeChooser(); }, 600);
@@ -1328,6 +1347,7 @@ licenseKey = key;
 
   // --- Main UI ---
   function showMainUI() {
+  setPanelScreenState('main');
   const greeting = spEscapeHtml(userName || 'User');
   const statusBadge = spTemplateStatusBadge(licenseStatus);
   const body = document.getElementById('sp-body');
@@ -2584,7 +2604,7 @@ licenseKey = key;
       document.body.classList.toggle('sp-light', !savedDark);
       syncThemeButton();
     });
-    chrome.storage.local.get(["ql_license_valid","ql_license_key","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_license_type","ql_license_lifetime","ql_session_id"], async (res) => {
+    chrome.storage.local.get(["ql_license_valid","ql_license_key","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_license_type","ql_license_lifetime","ql_session_id","tsModeChoicePending"], async (res) => {
       if(res.ql_license_valid) {
         licenseKey = res.ql_license_key || null;
         licenseType = res.ql_license_type || 'paid';
@@ -2593,7 +2613,8 @@ licenseKey = key;
         expiresAt = res.ql_expires_at || null;
         licenseStatus = res.ql_license_status || null;
         sessionId = res.ql_session_id || null;
-        showMainUI();
+        if (res.tsModeChoicePending) showModeChooser();
+        else showMainUI();
         if(res.ql_license_key) {
           try {
             const data = await bgFetch(VALIDATE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ license_key: res.ql_license_key, session_id: sessionId, heartbeat: true, device_id: deviceId }) });

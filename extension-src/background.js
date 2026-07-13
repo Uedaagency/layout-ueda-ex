@@ -190,13 +190,13 @@ async function openLovableTabAndShowExtension() {
     const tabs = await chrome.tabs.query({ url: ["https://lovable.dev/*", "https://*.lovable.dev/*"] });
     let target = tabs && tabs[0];
     if (!target) {
-      await chrome.storage.local.set({ sidebarCollapsed: false, tsExtensionLayoutMode: "sidebar" });
+      await chrome.storage.local.set({ sidebarCollapsed: false, tsExtensionLayoutMode: "popup" });
       await chrome.tabs.create({ url: "https://lovable.dev/" });
       return;
     }
     try { await chrome.tabs.update(target.id, { active: true }); } catch (_) {}
     try { await chrome.windows.update(target.windowId, { focused: true }); } catch (_) {}
-    await chrome.storage.local.set({ sidebarCollapsed: false, tsExtensionLayoutMode: "sidebar" });
+    await chrome.storage.local.set({ sidebarCollapsed: false, tsExtensionLayoutMode: "popup" });
   } catch (err) {
     console.error("[Background] show blocked extension error:", err);
   }
