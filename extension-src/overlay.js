@@ -679,9 +679,12 @@
     if (root) {
       root.classList.toggle("ts-flow-modal-mode", flowModalActive);
       root.classList.toggle("ts-popup-mode", isPopup && !flowModalActive);
+      root.classList.toggle("ts-overlay-disabled", overlayFeaturesDisabled);
+      if (overlayFeaturesDisabled) root.style.setProperty("display", "none", "important");
+      else root.style.removeProperty("display");
     }
 
-    if (document.body) document.body.classList.toggle("ts-native-chat-active", isPopup && !flowModalActive);
+    if (document.body) document.body.classList.toggle("ts-native-chat-active", isPopup && !flowModalActive && !overlayFeaturesDisabled);
 
     if (flowModalActive) {
       removeLauncher();
@@ -690,9 +693,14 @@
       clearPopupSelectedSkill();
     } else if (isPopup) {
       buildLauncher();
-      installNativeButtonInterceptors();
-      updateComposerWrapMark();
-      updateNativeBadge();
+      if (!overlayFeaturesDisabled) {
+        installNativeButtonInterceptors();
+        updateComposerWrapMark();
+        updateNativeBadge();
+      } else {
+        removeNativeBadge();
+        clearComposerWrapMark();
+      }
     } else {
       removeLauncher();
       removeNativeBadge();
