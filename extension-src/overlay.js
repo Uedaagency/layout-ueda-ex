@@ -1934,8 +1934,8 @@
       showStatus("✨ Abra a aba Skills no painel para inserir uma skill", "success");
       closeMenu();
     } else if (action === "new-project") {
-      try { window.open("https://lovable.dev/", "_blank"); } catch (_) {}
-      showStatus("🆕 Abrindo Lovable para criar um novo projeto…");
+      runIframeAction("new-project");
+      showStatus("🆕 Criando novo projeto…");
       closeMenu();
     } else if (action === "toggle-here") {
       const host = tsCurrentHost();
