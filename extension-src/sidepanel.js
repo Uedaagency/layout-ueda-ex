@@ -904,6 +904,22 @@ if (notifClose) {
     document.getElementById('sp-validate-btn').addEventListener('click', validateLicense);
   }
 
+  function showModeChooser() {
+    const body = document.getElementById('sp-body');
+    if (!body) { showMainUI(); return; }
+    body.innerHTML = spTemplateModeChooser();
+    body.querySelectorAll('.sp-mode-card').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode') || 'sidebar';
+        try { setExtensionLayoutMode(mode); } catch(_) {}
+        showMainUI();
+      });
+    });
+    const skip = document.getElementById('sp-mode-skip');
+    if (skip) skip.addEventListener('click', () => showMainUI());
+  }
+
+
   async function validateLicense() {
     const input = document.getElementById('sp-license-input');
     const log = document.getElementById('sp-license-log');
@@ -921,8 +937,10 @@ licenseLifetime = data.lifetime || false;
 licenseKey = key;
         chrome.storage.local.set({ ql_license_valid: true, ql_license_key: key, ql_session_id: data.session_id, ql_user_name: data.user_name || null, ql_expires_at: data.expires_at || null, ql_activated_at: data.activated_at || null, ql_license_status: data.status || null, ql_license_lifetime: licenseLifetime, ql_license_type: data.license_type || 'paid', }, () => {
           log.className = 'sp-log sp-log-success'; log.textContent = '✓ ' + data.message;
-          setTimeout(() => { showMainUI(); startHeartbeat(key); }, 800);
+          startHeartbeat(key);
+          setTimeout(() => { showModeChooser(); }, 600);
         });
+
       } else {
         log.className = 'sp-log sp-log-error'; log.textContent = '✗ ' + data.message;
       }
