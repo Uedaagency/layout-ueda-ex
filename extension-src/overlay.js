@@ -1300,17 +1300,19 @@
     filePlus:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M12 12v6"/></svg>',
     chevronR:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
     chevronL:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+    user:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    history:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>',
   };
 
   const MAIN_ITEMS = [
-    { action: "sidebar",     icon: LICON.panelRight, label: "Modo Sidebar" },
-    { action: "prompts",     icon: LICON.wrench,     label: "Atalhos", isPrompts: true },
+    { action: "user",        icon: LICON.user,       label: "Usuário" },
+    { action: "prompts",     icon: LICON.wrench,     label: "Atalhos" },
     { action: "optimize",    icon: LICON.sparkles,   label: "Otimizar" },
     { action: "skill",       icon: LICON.wand,       label: "Inserir Skill" },
     { action: "new-project", icon: LICON.filePlus,   label: "Criar projeto novo" },
     { action: "download",    icon: LICON.download,   label: "Baixar projeto" },
     { action: "watermark",   icon: LICON.badgeX,     label: "Remover marca d'água" },
-    { action: "notifications", icon: LICON.bell,     label: "Notificações" },
+    { action: "history",     icon: LICON.history,    label: "Histórico" },
   ];
 
   // Determine which side of the preview the launcher is on, to align the
@@ -1454,22 +1456,9 @@
       });
       btn.addEventListener("mouseenter", () => {
         highlightRow(action, true);
-        if (action === "prompts") {
-          if (hoverSubmenuTimer) clearTimeout(hoverSubmenuTimer);
-          if (!document.getElementById(SUBMENU_ID)) openPromptsSubmenu();
-        } else {
-          closeSubmenu();
-        }
       });
       btn.addEventListener("mouseleave", () => {
         highlightRow(action, false);
-        if (action === "prompts") {
-          if (hoverSubmenuTimer) clearTimeout(hoverSubmenuTimer);
-          hoverSubmenuTimer = setTimeout(() => {
-            const sub = document.getElementById(SUBMENU_ID);
-            if (sub && !sub.matches(":hover")) closeSubmenu();
-          }, 220);
-        }
       });
     };
     menu.querySelectorAll(".ts-fab-item[data-action]").forEach(bindAction);
@@ -1622,11 +1611,10 @@
       showStatus("⏳ Removendo marca d'água…");
       closeMenu();
     } else if (action === "download") {
+      openCenteredModal("Baixar projeto", '<p style="margin:0;color:#334155;font-size:13px;line-height:1.55">⏳ Preparando o download dos arquivos do projeto. Isso pode levar alguns segundos…</p>');
       runIframeAction("download");
-      showStatus("⏳ Baixando arquivos do projeto…");
       closeMenu();
     } else if (action === "optimize") {
-      // Optimize text already in native composer
       const composer = findNativeComposer();
       const text = composer ? readComposerText(composer).trim() : "";
       if (!text) {
@@ -1639,8 +1627,14 @@
     } else if (action === "notifications") {
       openNotificationsPanel();
     } else if (action === "prompts") {
-      if (document.getElementById(SUBMENU_ID)) { closeSubmenu(); return; }
-      openPromptsSubmenu();
+      openShortcutsModal();
+      closeMenu();
+    } else if (action === "history") {
+      openHistoryModal();
+      closeMenu();
+    } else if (action === "user") {
+      openUserModal();
+      closeMenu();
     } else if (action === "skill") {
       showStatus("✨ Abra a aba Skills no painel para inserir uma skill", "success");
       closeMenu();
@@ -1649,6 +1643,128 @@
       showStatus("🆕 Abrindo Lovable para criar um novo projeto…");
       closeMenu();
     }
+  }
+
+  // ============= Centered popup modal (blurred backdrop) =============
+  const MODAL_ID = "ts-floating-modal";
+  function ensureModalStyles() {
+    if (document.getElementById("ts-floating-modal-styles")) return;
+    const st = document.createElement("style");
+    st.id = "ts-floating-modal-styles";
+    st.textContent = `
+      #${MODAL_ID}-backdrop {
+        position: fixed !important; inset: 0 !important; z-index: 2147483645 !important;
+        background: rgba(15,23,42,0.35) !important; backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        animation: tsModalFade .18s ease-out;
+      }
+      #${MODAL_ID} {
+        background: #ffffff !important; color: #0f172a !important;
+        border-radius: 18px !important; padding: 20px 22px !important;
+        min-width: 320px !important; max-width: min(520px, 92vw) !important;
+        box-shadow: 0 30px 60px -20px rgba(15,23,42,0.35), 0 0 0 1px rgba(15,23,42,0.06) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        animation: tsModalPop .2s cubic-bezier(.2,.9,.3,1.2);
+      }
+      #${MODAL_ID} .ts-modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+      #${MODAL_ID} .ts-modal-title { font-size:15px; font-weight:700; color:#0f172a; }
+      #${MODAL_ID} .ts-modal-close { background:transparent; border:0; cursor:pointer; color:#64748b; font-size:16px; padding:4px 6px; border-radius:6px; }
+      #${MODAL_ID} .ts-modal-close:hover { background:#f1f5f9; color:#0f172a; }
+      #${MODAL_ID} .ts-modal-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+      #${MODAL_ID} .ts-modal-tile {
+        display:flex; flex-direction:column; align-items:center; gap:6px;
+        padding:12px 6px; border-radius:12px; background:#f8fafc; border:1px solid #e2e8f0;
+        cursor:pointer; transition:.15s ease; font-size:11px; color:#0f172a; text-align:center;
+      }
+      #${MODAL_ID} .ts-modal-tile:hover { background:#eef2ff; border-color:#c7d2fe; transform:translateY(-1px); }
+      #${MODAL_ID} .ts-modal-tile .ts-modal-tile-ico { font-size:20px; }
+      #${MODAL_ID} .ts-modal-list { display:flex; flex-direction:column; gap:8px; }
+      #${MODAL_ID} .ts-modal-item { padding:12px 14px; border-radius:12px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; color:#0f172a; }
+      #${MODAL_ID} .ts-modal-item .ts-modal-item-sub { color:#64748b; font-size:11px; margin-top:4px; }
+      @keyframes tsModalFade { from{opacity:0} to{opacity:1} }
+      @keyframes tsModalPop { from{opacity:0; transform:scale(.94)} to{opacity:1; transform:scale(1)} }
+    `;
+    document.head.appendChild(st);
+  }
+  function closeCenteredModal() {
+    const b = document.getElementById(MODAL_ID + "-backdrop");
+    if (b) b.remove();
+  }
+  function openCenteredModal(title, innerHtml) {
+    ensureModalStyles();
+    closeCenteredModal();
+    const back = document.createElement("div");
+    back.id = MODAL_ID + "-backdrop";
+    back.innerHTML =
+      `<div id="${MODAL_ID}" role="dialog" aria-modal="true">
+        <div class="ts-modal-head">
+          <div class="ts-modal-title">${escapeHtml(title)}</div>
+          <button type="button" class="ts-modal-close" aria-label="Fechar">✕</button>
+        </div>
+        <div class="ts-modal-body">${innerHtml}</div>
+      </div>`;
+    document.body.appendChild(back);
+    back.addEventListener("click", (e) => { if (e.target === back) closeCenteredModal(); });
+    back.querySelector(".ts-modal-close").addEventListener("click", closeCenteredModal);
+    return back.querySelector("#" + MODAL_ID);
+  }
+
+  function openShortcutsModal() {
+    const list = (promptTemplates && promptTemplates.length) ? promptTemplates : [];
+    const body = list.length
+      ? `<div class="ts-modal-grid">` + list.map((t, i) =>
+          `<button type="button" class="ts-modal-tile" data-prompt-index="${i}" title="${escapeHtml(t.label)}">
+             <span class="ts-modal-tile-ico">${escapeHtml(safePromptIcon(t.icon))}</span>
+             <span>${escapeHtml(t.label)}</span>
+           </button>`
+        ).join("") + `</div>`
+      : `<p style="margin:0;color:#64748b;font-size:13px">Carregando atalhos…</p>`;
+    const modal = openCenteredModal("Atalhos", body);
+    if (!modal) return;
+    modal.querySelectorAll("[data-prompt-index]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.getAttribute("data-prompt-index"), 10);
+        const t = promptTemplates[idx];
+        if (!t) return;
+        const ok = insertIntoNativeLovableTextarea(t.prompt);
+        if (ok) showStatus("✓ Prompt inserido — revise e envie", "success");
+        else showStatus("✗ Composer nativo não encontrado", "error");
+        closeCenteredModal();
+      });
+    });
+  }
+
+  function openHistoryModal() {
+    let items = [];
+    try {
+      const raw = localStorage.getItem("ql_history") || "[]";
+      items = JSON.parse(raw);
+    } catch (_) { items = []; }
+    const body = (Array.isArray(items) && items.length)
+      ? `<div class="ts-modal-list">` + items.slice(0, 20).map((h) =>
+          `<div class="ts-modal-item">
+             <div>${escapeHtml((h && h.title) || "Ação")}</div>
+             <div class="ts-modal-item-sub">${escapeHtml((h && h.when) || "")}</div>
+           </div>`
+        ).join("") + `</div>`
+      : `<p style="margin:0;color:#64748b;font-size:13px">Nenhum histórico registrado ainda.</p>`;
+    openCenteredModal("Histórico", body);
+  }
+
+  function openUserModal() {
+    const body = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:44px;height:44px;border-radius:50%;background:#38bdf8;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">U</div>
+        <div>
+          <div style="font-weight:700;color:#0f172a">Usuário</div>
+          <div style="color:#16a34a;font-size:12px">✓ Sincronizado</div>
+        </div>
+      </div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;font-size:12px;color:#334155">
+        Plano ativo · Gerencie sua conta no painel principal.
+      </div>`;
+    openCenteredModal("Usuário", body);
   }
 
   let statusTimer = null;
