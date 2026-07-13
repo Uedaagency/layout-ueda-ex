@@ -2357,6 +2357,7 @@
             return;
           }
           if (send && (btn === send || send.contains(btn) || btn.contains(send))) {
+            if (window.__tsBypassNativeSend) return;
             e.preventDefault(); e.stopPropagation();
             if (e.stopImmediatePropagation) e.stopImmediatePropagation();
             if (t === "click") handlePopupNativeSend();
