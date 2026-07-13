@@ -1691,12 +1691,12 @@
       const composer = findNativeComposer();
       const text = composer ? readComposerText(composer).trim() : "";
       if (!text) {
-        showStatus("✗ Digite algo no chat nativo antes de otimizar", "error");
+        showStatus("✗ Digite algo no chat nativo antes de reescrever", "error");
         return;
       }
-      runIframeAction("optimize", { prompt: text });
-      showStatus("✨ Otimizando prompt do composer nativo…");
+      rewriteNativeComposerPrompt(composer, text);
       closeMenu();
+
     } else if (action === "notifications") {
       openNotificationsPanel();
     } else if (action === "prompts") {
