@@ -1118,8 +1118,8 @@
     const r = wrap.getBoundingClientRect();
     const w = tools.offsetWidth || 118;
     const h = tools.offsetHeight || 38;
-    const left = Math.max(8, Math.min(r.left + 44, window.innerWidth - w - 8));
-    const top = Math.max(8, r.top - h - 8);
+    const left = Math.max(8, Math.min(r.right - w - 8, window.innerWidth - w - 8));
+    const top = Math.max(8, Math.min(r.bottom + 8, window.innerHeight - h - 8));
     tools.style.setProperty("left", left + "px", "important");
     tools.style.setProperty("top", top + "px", "important");
   }
