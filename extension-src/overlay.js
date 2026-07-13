@@ -2416,8 +2416,9 @@
 
 
   function isPopupNativeModeActive() {
-    return currentLayoutMode === "popup";
+    return currentLayoutMode === "popup" && !overlayFeaturesDisabled;
   }
+
 
   // Direct-bound interceptors (capture-phase) on the actual native buttons,
   // re-applied whenever DOM changes. This wins over Lovable's own handlers,
