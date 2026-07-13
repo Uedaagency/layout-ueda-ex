@@ -457,26 +457,58 @@ function FloatingPreview() {
     <div className="relative flex-1">
       <DesktopBackground />
 
-      {/* Rail expands UPWARD from the logo */}
+      {/* Labels panel — slides out to the LEFT of the icon rail when expanded */}
+      {expanded && showNames && (
+        <div
+          className="absolute flex flex-col gap-1 py-4 pl-4 pr-6 shadow-2xl"
+          style={{
+            right: anchorRight + 64,
+            bottom: anchorBottom + 68,
+            width: 168,
+            background: "rgba(255,255,255,0.96)",
+            backdropFilter: "blur(20px) saturate(180%)",
+            borderRadius: 28,
+            boxShadow: "0 20px 60px rgba(15,42,66,0.25)",
+          }}
+        >
+          {RAIL_ITEMS.map((it) => {
+            const active = activeTab === it.id;
+            return (
+              <button
+                key={it.id}
+                type="button"
+                onClick={() => setActiveTab(active ? null : it.id)}
+                className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition"
+                style={{
+                  background: active ? "#0f2a42" : "transparent",
+                  color: active ? "#fff" : "#0f2a42",
+                }}
+              >
+                <it.icon size={15} strokeWidth={1.75} />
+                <span className="truncate text-[13px] font-medium">{it.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Icon rail — dark vertical pill anchored above the logo */}
       {expanded && (
         <div
-          className="absolute flex flex-col gap-1.5 rounded-2xl border p-2 shadow-2xl"
+          className="absolute flex flex-col items-center gap-2 py-3"
           style={{
-            right: anchorRight,
-            bottom: anchorBottom + 68, // sits just above the fixed logo
-            width: showNames ? 200 : 56,
-            transition: "width .25s ease",
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.88), rgba(224,242,254,0.78))",
-            backdropFilter: "blur(24px) saturate(180%)",
-            borderColor: "rgba(0,159,227,0.25)",
-            boxShadow: `0 20px 60px rgba(0,159,227,0.30)`,
+            right: anchorRight + 4,
+            bottom: anchorBottom + 68,
+            width: 48,
+            background: "linear-gradient(180deg,#0f2a42,#08192b)",
+            borderRadius: 999,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.06)",
           }}
         >
           <button
             type="button"
             onClick={() => setShowNames((v) => !v)}
-            className="ml-auto flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-white/70"
+            className="flex h-6 w-6 items-center justify-center rounded-full text-white/70 hover:text-white"
             title={showNames ? "Recolher" : "Expandir"}
           >
             {showNames ? "›" : "‹"}
@@ -488,25 +520,15 @@ function FloatingPreview() {
                 key={it.id}
                 type="button"
                 onClick={() => setActiveTab(active ? null : it.id)}
-                className="flex items-center gap-3 rounded-lg px-1.5 py-1.5 text-left transition"
+                className="flex h-9 w-9 items-center justify-center rounded-full transition"
                 style={{
-                  background: active ? `${BRAND}22` : "transparent",
-                  color: active ? BRAND_DARK : "#0a2540",
+                  background: active ? "#fff" : "transparent",
+                  color: active ? "#0f2a42" : "rgba(255,255,255,0.85)",
+                  border: active ? "none" : "1px solid rgba(255,255,255,0.18)",
                 }}
+                title={it.label}
               >
-                <span
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                  style={{
-                    background: active ? BRAND : "rgba(255,255,255,.65)",
-                    color: active ? "#fff" : "#0a2540",
-                    border: "1px solid rgba(0,159,227,0.15)",
-                  }}
-                >
-                  <it.icon size={16} strokeWidth={1.75} />
-                </span>
-                {showNames && (
-                  <span className="truncate text-sm font-medium">{it.label}</span>
-                )}
+                <it.icon size={15} strokeWidth={1.9} />
               </button>
             );
           })}
@@ -523,6 +545,7 @@ function FloatingPreview() {
             setShowNames(false);
           } else {
             setExpanded(true);
+            setShowNames(true);
           }
         }}
         className="absolute"
@@ -531,20 +554,20 @@ function FloatingPreview() {
       >
         {!expanded && (
           <span
-            className="absolute inset-0 rounded-2xl animate-ping"
+            className="absolute inset-0 rounded-full animate-ping"
             style={{ background: BRAND, opacity: 0.35 }}
           />
         )}
         <span
-          className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-2xl overflow-hidden"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white overflow-hidden"
           style={{
-            boxShadow: `0 10px 40px ${BRAND}80`,
+            boxShadow: `0 10px 40px ${BRAND}70, 0 0 0 4px rgba(15,42,66,0.9)`,
           }}
         >
           {expanded ? (
             <X size={22} strokeWidth={2.2} color={BRAND_DARK} />
           ) : (
-            <img src={uedaLogo.url} alt="Ueda EX" className="h-10 w-10 object-contain" />
+            <img src={uedaLogo.url} alt="Ueda EX" className="h-9 w-9 object-contain" />
           )}
         </span>
       </button>
