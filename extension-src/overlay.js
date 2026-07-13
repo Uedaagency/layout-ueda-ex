@@ -303,23 +303,28 @@
       #${MENU_ID} .ts-fab-circle, #${SUBMENU_ID} .ts-fab-circle {
         width: 38px !important; height: 38px !important;
         border-radius: 999px !important;
-        background: var(--ts-primary-gradient) !important;
-        color: #fff !important;
+        background: linear-gradient(180deg,#0f2a42,#08192b) !important;
+        color: rgba(255,255,255,0.9) !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         font-size: 15px !important;
         flex: 0 0 auto !important;
-        box-shadow: 0 4px 12px rgba(124, 90, 255, 0.45), 0 0 0 1px rgba(255,255,255,0.08) inset !important;
-        border: 1px solid rgba(255,255,255,0.15) !important;
-        transition: box-shadow 200ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important;
+        border: 1px solid rgba(255,255,255,0.18) !important;
+        transition: box-shadow 200ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), background 200ms ease, color 200ms ease !important;
+      }
+      #${MENU_ID} .ts-fab-item:hover .ts-fab-circle,
+      #${SUBMENU_ID} .ts-fab-item:hover .ts-fab-circle {
+        background: #ffffff !important;
+        color: #0f2a42 !important;
+        box-shadow: 0 8px 20px rgba(0,159,227,0.35) !important;
       }
       #${MENU_ID} .ts-fab-circle svg, #${SUBMENU_ID} .ts-fab-circle svg {
-        width: 18px !important; height: 18px !important; stroke: #fff !important;
+        width: 18px !important; height: 18px !important; stroke: currentColor !important;
       }
       #${MENU_ID} .ts-fab-item.ts-fab-prompts .ts-fab-circle {
-        background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.45) !important;
+        background: linear-gradient(180deg,#0f2a42,#08192b) !important;
       }
       #${MENU_ID} .ts-fab-chevron {
         opacity: 0.85 !important;
