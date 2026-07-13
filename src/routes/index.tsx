@@ -8,6 +8,8 @@ import {
   Eraser,
   User,
   MessageSquare,
+  Wrench,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import sidepanelCss from "../extension-assets/sidepanel.css?raw";
@@ -426,9 +428,10 @@ function FixedPreview({ srcDoc }: { srcDoc: string }) {
    FLOATING: pulsing logo → icon rail → expandable to names
    Tabs (Prompt/Skills/Histórico) and user icon open glass popups
 ============================================================ */
-type FloatingTab = null | "prompt" | "skills" | "history" | "user" | "optimize" | "insert-skill" | "new-project" | "download" | "remove-watermark";
+type FloatingTab = null | "prompt" | "skills" | "history" | "user" | "optimize" | "insert-skill" | "new-project" | "download" | "remove-watermark" | "shortcuts";
 
 const RAIL_ITEMS: { id: Exclude<FloatingTab, null>; icon: LucideIcon; label: string }[] = [
+  { id: "shortcuts", icon: Wrench, label: "Atalhos" },
   { id: "optimize", icon: Zap, label: "Otimizar" },
   { id: "insert-skill", icon: Sparkles, label: "Inserir Skill" },
   { id: "new-project", icon: FilePlus2, label: "Criar projeto novo" },
@@ -439,67 +442,42 @@ const RAIL_ITEMS: { id: Exclude<FloatingTab, null>; icon: LucideIcon; label: str
 ];
 
 function FloatingPreview() {
-  const [expanded, setExpanded] = useState(false); // rail visible
-  const [showNames, setShowNames] = useState(false); // rail expanded with names
+  const [expanded, setExpanded] = useState(false);
+  const [showNames, setShowNames] = useState(false);
   const [activeTab, setActiveTab] = useState<FloatingTab>(null);
+
+  // Logo stays fixed at bottom-right, offset from the edge.
+  const anchorRight = 56;
+  const anchorBottom = 56;
 
   return (
     <div className="relative flex-1">
       <DesktopBackground />
 
-      {/* Pulsing logo (collapsed) */}
-      {!expanded && (
-        <button
-          type="button"
-          onClick={() => setExpanded(true)}
-          className="absolute"
-          style={{ right: 32, bottom: 32 }}
-          title="Abrir extensão"
-        >
-          <span
-            className="absolute inset-0 rounded-2xl animate-ping"
-            style={{ background: BRAND, opacity: 0.4 }}
-          />
-          <span
-            className="relative flex h-14 w-14 items-center justify-center rounded-2xl text-white font-black text-xl shadow-2xl"
-            style={{
-              background: `linear-gradient(135deg, ${BRAND}, ${BRAND_DARK})`,
-              boxShadow: `0 10px 40px ${BRAND}80`,
-            }}
-          >
-            U
-          </span>
-        </button>
-      )}
-
-      {/* Expanded rail */}
+      {/* Rail expands UPWARD from the logo */}
       {expanded && (
         <div
-          className="absolute flex flex-col gap-2 rounded-2xl border p-2 shadow-2xl"
+          className="absolute flex flex-col gap-1.5 rounded-2xl border p-2 shadow-2xl"
           style={{
-            right: 32,
-            bottom: 32,
-            width: showNames ? 180 : 60,
+            right: anchorRight,
+            bottom: anchorBottom + 68, // sits just above the fixed logo
+            width: showNames ? 200 : 56,
             transition: "width .25s ease",
             background:
-              "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(224,242,254,0.75))",
+              "linear-gradient(135deg, rgba(255,255,255,0.88), rgba(224,242,254,0.78))",
             backdropFilter: "blur(24px) saturate(180%)",
             borderColor: "rgba(0,159,227,0.25)",
             boxShadow: `0 20px 60px rgba(0,159,227,0.30)`,
           }}
         >
-          <div className="flex items-center justify-between gap-1">
-            <BrandLogo size={40} />
-            <button
-              type="button"
-              onClick={() => setShowNames((v) => !v)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-white/60"
-              title={showNames ? "Recolher" : "Expandir"}
-            >
-              {showNames ? "‹" : "›"}
-            </button>
-          </div>
-          <div className="h-px w-full bg-[#009FE3]/15" />
+          <button
+            type="button"
+            onClick={() => setShowNames((v) => !v)}
+            className="ml-auto flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-white/70"
+            title={showNames ? "Recolher" : "Expandir"}
+          >
+            {showNames ? "›" : "‹"}
+          </button>
           {RAIL_ITEMS.map((it) => {
             const active = activeTab === it.id;
             return (
@@ -507,14 +485,20 @@ function FloatingPreview() {
                 key={it.id}
                 type="button"
                 onClick={() => setActiveTab(active ? null : it.id)}
-                className="flex items-center gap-3 rounded-lg px-2 py-2 text-left transition"
+                className="flex items-center gap-3 rounded-lg px-1.5 py-1.5 text-left transition"
                 style={{
                   background: active ? `${BRAND}22` : "transparent",
                   color: active ? BRAND_DARK : "#0a2540",
                 }}
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                  style={{ background: active ? BRAND : "rgba(255,255,255,.6)", color: active ? "#fff" : "#0a2540" }}>
+                <span
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                  style={{
+                    background: active ? BRAND : "rgba(255,255,255,.65)",
+                    color: active ? "#fff" : "#0a2540",
+                    border: "1px solid rgba(0,159,227,0.15)",
+                  }}
+                >
                   <it.icon size={16} strokeWidth={1.75} />
                 </span>
                 {showNames && (
@@ -523,23 +507,41 @@ function FloatingPreview() {
               </button>
             );
           })}
-          <div className="h-px w-full bg-[#009FE3]/15" />
-          <button
-            type="button"
-            onClick={() => {
-              setExpanded(false);
-              setActiveTab(null);
-              setShowNames(false);
-            }}
-            className="flex items-center gap-3 rounded-lg px-2 py-2 text-left text-slate-500 hover:bg-white/60"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base">
-              ✕
-            </span>
-            {showNames && <span className="text-sm">Fechar</span>}
-          </button>
         </div>
       )}
+
+      {/* Fixed logo — anchored at bottom, pulls the rail up */}
+      <button
+        type="button"
+        onClick={() => {
+          if (expanded) {
+            setExpanded(false);
+            setActiveTab(null);
+            setShowNames(false);
+          } else {
+            setExpanded(true);
+          }
+        }}
+        className="absolute"
+        style={{ right: anchorRight, bottom: anchorBottom }}
+        title={expanded ? "Fechar" : "Abrir extensão"}
+      >
+        {!expanded && (
+          <span
+            className="absolute inset-0 rounded-2xl animate-ping"
+            style={{ background: BRAND, opacity: 0.35 }}
+          />
+        )}
+        <span
+          className="relative flex h-14 w-14 items-center justify-center rounded-2xl text-white font-black text-xl shadow-2xl"
+          style={{
+            background: `linear-gradient(135deg, ${BRAND}, ${BRAND_DARK})`,
+            boxShadow: `0 10px 40px ${BRAND}80`,
+          }}
+        >
+          {expanded ? <X size={22} strokeWidth={2.2} /> : "U"}
+        </span>
+      </button>
 
       {/* Centered popup for the active tab */}
       {activeTab && (
@@ -568,6 +570,7 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
     "new-project": "Criar projeto novo",
     download: "Baixar projeto",
     "remove-watermark": "Remover marca d'água",
+    shortcuts: "Atalhos",
   };
   const descriptions: Partial<Record<Exclude<FloatingTab, null>, string>> = {
     optimize: "Analisa o projeto e sugere melhorias de performance, código e UX.",
@@ -590,6 +593,7 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
       </div>
 
       {tab === "prompt" && <PromptContent />}
+      {tab === "shortcuts" && <PromptContent />}
       {tab === "skills" && <SkillsContent />}
       {tab === "history" && <HistoryContent />}
       {tab === "user" && <UserContent />}
