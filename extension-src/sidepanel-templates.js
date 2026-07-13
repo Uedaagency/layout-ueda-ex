@@ -57,7 +57,7 @@ Pixel Perfection: Corrija pequenos desalinhamentos, bordas mal renderizadas ou e
 Diretriz de Execução: Analise a página atual como um crítico de design. Identifique o que a torna "comum" e aplique as mudanças necessárias para torná-la "extraordinária". O resultado final deve ser uma página que não apenas funcione perfeitamente, mas que transmita autoridade, luxo e atenção obsessiva aos detalhes.`
   },
   {
-    icon: "📖",
+    icon: SP_MINI_ICON('<path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M4 17a3 3 0 0 1 3-3h11"/>'),
     label: "Explicar Código",
     prompt: "Forneça uma explicação técnica detalhada e didática sobre o funcionamento deste código. Descreva o papel de cada função, componente e lógica de negócio, facilitando a compreensão do fluxo de dados e a arquitetura da solução para outros desenvolvedores."
   },
