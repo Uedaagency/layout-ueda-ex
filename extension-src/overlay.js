@@ -2094,6 +2094,57 @@
       return false;
     }
 
+    // If Lovable already owns the attached files (injected into its composer),
+    // we must NOT route through the iframe — that would strip them from the
+    // payload. Trigger the native send instead so text + files ship together.
+    const lovableOwnsFiles = popupAttachments.some((a) => a.__lovableOwned);
+    if (lovableOwnsFiles) {
+      let finalPrompt = text;
+      if (popupSelectedSkill) {
+        const pfx = popupSelectedSkill.prefix
+          || (popupSelectedSkill.content ? popupSelectedSkill.content : "");
+        finalPrompt = text ? (pfx + (pfx.endsWith(":") || pfx.endsWith(" ") ? "" : " ") + text) : pfx;
+        clearPopupSelectedSkill();
+      }
+      if (composer && finalPrompt !== text) {
+        // Rewrite composer text to include skill prefix; keep files intact.
+        try {
+          if (composer.tagName === "TEXTAREA" || composer.tagName === "INPUT") {
+            const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")
+              || Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value");
+            if (setter && setter.set) setter.set.call(composer, finalPrompt); else composer.value = finalPrompt;
+            composer.dispatchEvent(new Event("input", { bubbles: true }));
+          } else {
+            composer.textContent = finalPrompt;
+            composer.dispatchEvent(new InputEvent("input", { bubbles: true }));
+          }
+        } catch (_) {}
+      }
+      // Let Lovable's own send button run (temporarily bypass our interceptor).
+      try {
+        const btn = findNativeSendButton();
+        if (btn) {
+          window.__tsBypassNativeSend = true;
+          btn.click();
+          setTimeout(() => { window.__tsBypassNativeSend = false; }, 500);
+          clearPopupAttachments();
+          showStatus("✓ Enviado com anexos", "success");
+          return true;
+        }
+      } catch (_) { window.__tsBypassNativeSend = false; }
+      // Fallback if native send button missing: dispatch Enter on composer.
+      try {
+        if (composer) {
+          window.__tsBypassNativeSend = true;
+          composer.focus();
+          composer.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+          setTimeout(() => { window.__tsBypassNativeSend = false; }, 500);
+          clearPopupAttachments();
+          return true;
+        }
+      } catch (_) { window.__tsBypassNativeSend = false; }
+    }
+
     if (composer) clearComposer(composer);
     let finalPrompt = text;
     if (popupSelectedSkill) {
