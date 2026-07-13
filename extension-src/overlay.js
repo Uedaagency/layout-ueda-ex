@@ -307,7 +307,7 @@
         border-radius: 999px !important;
         box-shadow: 0 18px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 0 1px rgba(255,255,255,0.04) !important;
         overflow: visible !important;
-        position: fixed !important;
+        transform: translateZ(0) !important;
         transition:
           left 260ms cubic-bezier(0.22, 1, 0.36, 1),
           right 260ms cubic-bezier(0.22, 1, 0.36, 1),
