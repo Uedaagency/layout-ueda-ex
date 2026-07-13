@@ -119,7 +119,7 @@ Instrução de Execução: Não ignore falhas "teóricas". Trate cada brecha com
     prompt: "Desenvolva uma suíte abrangente de testes unitários para este código, cobrindo caminhos felizes e casos de borda. Utilize frameworks modernos e garanta uma alta cobertura de código, seguindo as melhores práticas de Clean Testing e isolamento de dependências."
   },
   {
-    icon: "📱",
+    icon: SP_MINI_ICON('<rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/>'),
     label: "Responsividade",
     prompt: `Você é um Especialista em Interfaces Adaptativas com foco em acessibilidade e performance mobile. Sua missão é refatorar a estrutura de uma página para que ela seja 100% responsiva, garantindo uma experiência nativa em qualquer resolução, de relógios inteligentes a monitores ultrawide.
 
