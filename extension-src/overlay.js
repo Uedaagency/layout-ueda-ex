@@ -21,6 +21,7 @@
   const LABELS_ID = "ts-floating-labels-panel";
   const SUBMENU_ID = "ts-floating-submenu";
   const NOTIF_PANEL_ID = "ts-notification-panel";
+  const CHAT_TOOLS_ID = "ts-native-chat-tools";
   const COMPOSER_WRAP_CLASS = "ts-native-composer-wrap";
   const TS_SIDEBAR_WIDTH = 380;
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwc3NhZWZwdG9uemJwZ2N2dHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY4NTUsImV4cCI6MjA5OTUyMjg1NX0.rZVreithJxc4w3T4W45zXTyATai3yjYennoa4nU9Uu8";
