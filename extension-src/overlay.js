@@ -1080,6 +1080,55 @@
     const b = document.getElementById("ts-native-badge"); if (b) b.remove();
   }
 
+  function ensureNativeChatTools() {
+    if (currentLayoutMode !== "popup" || flowModalActive || overlayFeaturesDisabled) {
+      removeNativeChatTools();
+      return;
+    }
+    const composer = findNativeComposerWrap() || findNativeComposer();
+    if (!composer) { removeNativeChatTools(); return; }
+    let tools = document.getElementById(CHAT_TOOLS_ID);
+    if (!tools) {
+      tools = document.createElement("div");
+      tools.id = CHAT_TOOLS_ID;
+      tools.innerHTML =
+        `<button type="button" class="ts-chat-tool" data-chat-action="attach" title="Anexar imagem" aria-label="Anexar imagem">${LICON.paperclip}</button>` +
+        `<button type="button" class="ts-chat-tool" data-chat-action="new-project" title="Novo projeto" aria-label="Novo projeto">${LICON.filePlus}</button>` +
+        `<button type="button" class="ts-chat-tool" data-chat-action="download" title="Baixar projeto" aria-label="Baixar projeto">${LICON.download}</button>`;
+      document.body.appendChild(tools);
+      tools.querySelectorAll("[data-chat-action]").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const action = btn.getAttribute("data-chat-action");
+          if (action === "attach") triggerPopupAttach();
+          else if (action === "new-project") { runIframeAction("new-project"); showStatus("🆕 Criando novo projeto…"); }
+          else if (action === "download") { runIframeAction("download"); showStatus("⏳ Baixando projeto…"); }
+        });
+      });
+    }
+    positionNativeChatTools();
+  }
+
+  function positionNativeChatTools() {
+    const tools = document.getElementById(CHAT_TOOLS_ID);
+    if (!tools) return;
+    const wrap = findNativeComposerWrap() || findNativeComposer();
+    if (!wrap) { removeNativeChatTools(); return; }
+    const r = wrap.getBoundingClientRect();
+    const w = tools.offsetWidth || 118;
+    const h = tools.offsetHeight || 38;
+    const left = Math.max(8, Math.min(r.left + 44, window.innerWidth - w - 8));
+    const top = Math.max(8, r.top - h - 8);
+    tools.style.setProperty("left", left + "px", "important");
+    tools.style.setProperty("top", top + "px", "important");
+  }
+
+  function removeNativeChatTools() {
+    const tools = document.getElementById(CHAT_TOOLS_ID);
+    if (tools) tools.remove();
+  }
+
   // ===================== Selected Skill Badge (popup mode) =====================
   // When the user picks a skill via the slash picker, we don't write the
   // "/skill:..." prefix into the native textarea. Instead we keep the picked
