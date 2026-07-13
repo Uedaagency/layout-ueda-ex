@@ -2091,27 +2091,11 @@
   function attachFilesViaIframe(files) {
     const arr = Array.from(files || []).filter(Boolean);
     if (!arr.length) return;
-    // Preferred path in popup mode: hand files straight to Lovable's composer so
-    // they're bundled with the user's text on the next native send.
-    if (currentLayoutMode === "popup") {
-      const injected = injectFilesIntoNativeComposer(arr);
-      if (injected) {
-        showStatus("📎 " + arr.length + " arquivo(s) anexado(s) ao chat", "success");
-        try { addPopupAttachments(arr); } catch (_) {}
-        // Mark local previews as ready immediately — Lovable owns the upload now.
-        try {
-          popupAttachments.forEach((a) => {
-            if (arr.some((f) => f.name === a.name && f.size === a.size)) {
-              a.uploading = false; a.uploadFailed = false; a.ready = true;
-              a.__lovableOwned = true;
-            }
-          });
-          renderPopupAttachments();
-        } catch (_) {}
-        return;
-      }
-    }
-    // Fallback: sidepanel iframe flow (uploads via extension backend).
+    // Popup mode must use the hidden sidepanel upload pipeline. Synthetic
+    // injection into Lovable's native file input can render preview chips while
+    // not actually registering the files in Lovable's send payload, leaving
+    // images stuck in the composer. The sidepanel path converts images to inline
+    // data and sends them together with the native composer text.
     showStatus("📎 Enviando " + arr.length + " arquivo(s)…");
     postToIframe({ type: "TS_POPUP_ACTION", action: "attach", files: arr });
     try { addPopupAttachments(arr); } catch (_) {}
@@ -2217,6 +2201,7 @@
   // Intercept Enter on the native composer in popup mode.
   document.addEventListener("keydown", (e) => {
     if (currentLayoutMode !== "popup") return;
+    if (window.__tsBypassNativeSend) return;
     if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
     const target = e.target;
     if (!target || !(target.tagName === "TEXTAREA" || (target.getAttribute && target.getAttribute("contenteditable") === "true"))) return;
@@ -2232,6 +2217,7 @@
   // Intercept form submit in popup mode.
   document.addEventListener("submit", (e) => {
     if (currentLayoutMode !== "popup") return;
+    if (window.__tsBypassNativeSend) return;
     const form = e.target;
     if (!form || !form.contains) return;
     const composer = findNativeComposer();
