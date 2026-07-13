@@ -107,9 +107,9 @@
         align-items: center !important;
         justify-content: center !important;
         padding: 24px !important;
-        background: rgba(12, 18, 28, 0.36) !important;
-        backdrop-filter: blur(9px) saturate(105%) !important;
-        -webkit-backdrop-filter: blur(9px) saturate(105%) !important;
+        background: rgba(12, 18, 28, 0.22) !important;
+        backdrop-filter: blur(14px) saturate(130%) !important;
+        -webkit-backdrop-filter: blur(14px) saturate(130%) !important;
         box-shadow: none !important;
         transform: none !important;
         pointer-events: auto !important;
@@ -130,8 +130,8 @@
         pointer-events: auto !important;
         border-radius: 26px !important;
         overflow: hidden !important;
-        background: transparent !important;
-        box-shadow: 0 34px 90px rgba(8, 16, 30, 0.30), 0 0 0 1px rgba(255,255,255,0.42) !important;
+        background: rgba(255,255,255,0.72) !important;
+        box-shadow: 0 34px 90px rgba(8, 16, 30, 0.35), inset 0 1px 0 rgba(255,255,255,0.65), 0 0 0 1px rgba(255,255,255,0.5) !important;
         transform: translateY(0) scale(1) !important;
         animation: tsModalPop 260ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
       }
