@@ -116,11 +116,11 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        background: rgba(255, 255, 255, 0.06) !important;
+        background: #ffffff !important;
         backdrop-filter: blur(10px) !important;
         -webkit-backdrop-filter: blur(10px) !important;
-        border: 1px solid var(--ts-primary-border-soft) !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+        border: 3px solid #0f2a42 !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0.0) !important;
         padding: 0 !important;
         transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease !important;
         user-select: none !important;
@@ -128,8 +128,8 @@
       }
       #${LAUNCHER_ID}:hover {
         transform: scale(1.06) !important;
-        border-color: var(--ts-primary-border) !important;
-        box-shadow: var(--ts-primary-glow-strong) !important;
+        border-color: var(--ts-brand-primary) !important;
+        box-shadow: 0 12px 40px rgba(0,159,227,0.45) !important;
       }
       #${LAUNCHER_ID}.ts-launcher-dragging {
         cursor: grabbing !important;
@@ -140,9 +140,9 @@
         height: 38px !important;
         object-fit: contain !important;
         pointer-events: none !important;
-        border-radius: 8px !important;
+        border-radius: 0 !important;
         opacity: 1 !important;
-        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35)) !important;
+        filter: none !important;
       }
       #${LAUNCHER_ID}.ts-launcher-active {
         background: var(--ts-primary-gradient) !important;
@@ -303,23 +303,28 @@
       #${MENU_ID} .ts-fab-circle, #${SUBMENU_ID} .ts-fab-circle {
         width: 38px !important; height: 38px !important;
         border-radius: 999px !important;
-        background: var(--ts-primary-gradient) !important;
-        color: #fff !important;
+        background: linear-gradient(180deg,#0f2a42,#08192b) !important;
+        color: rgba(255,255,255,0.9) !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         font-size: 15px !important;
         flex: 0 0 auto !important;
-        box-shadow: 0 4px 12px rgba(124, 90, 255, 0.45), 0 0 0 1px rgba(255,255,255,0.08) inset !important;
-        border: 1px solid rgba(255,255,255,0.15) !important;
-        transition: box-shadow 200ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important;
+        border: 1px solid rgba(255,255,255,0.18) !important;
+        transition: box-shadow 200ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), background 200ms ease, color 200ms ease !important;
+      }
+      #${MENU_ID} .ts-fab-item:hover .ts-fab-circle,
+      #${SUBMENU_ID} .ts-fab-item:hover .ts-fab-circle {
+        background: #ffffff !important;
+        color: #0f2a42 !important;
+        box-shadow: 0 8px 20px rgba(0,159,227,0.35) !important;
       }
       #${MENU_ID} .ts-fab-circle svg, #${SUBMENU_ID} .ts-fab-circle svg {
-        width: 18px !important; height: 18px !important; stroke: #fff !important;
+        width: 18px !important; height: 18px !important; stroke: currentColor !important;
       }
       #${MENU_ID} .ts-fab-item.ts-fab-prompts .ts-fab-circle {
-        background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.45) !important;
+        background: linear-gradient(180deg,#0f2a42,#08192b) !important;
       }
       #${MENU_ID} .ts-fab-chevron {
         opacity: 0.85 !important;
@@ -1131,23 +1136,28 @@
 
   // Lucide icon SVGs (stroke uses currentColor in CSS).
   const LICON = {
-    panelRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/><path d="M10 8l-3 4 3 4"/></svg>',
-    badgeX:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>',
-    download:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-    sparkles:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>',
-    library:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>',
-    bell:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
-    chevronR:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
-    chevronL:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+    panelRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/><path d="M10 8l-3 4 3 4"/></svg>',
+    badgeX:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>',
+    download:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+    sparkles:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>',
+    library:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>',
+    bell:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+    wrench:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+    wand:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>',
+    filePlus:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M12 12v6"/></svg>',
+    chevronR:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+    chevronL:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
   };
 
   const MAIN_ITEMS = [
-    { action: "sidebar",   icon: LICON.panelRight, label: "Modo Sidebar" },
-    { action: "watermark", icon: LICON.badgeX,     label: "Remover marca d'água" },
-    { action: "download",  icon: LICON.download,   label: "Baixar" },
-    { action: "optimize",  icon: LICON.sparkles,   label: "Otimizar" },
-    { action: "notifications", icon: LICON.bell,   label: "Notificações" },
-    { action: "prompts",   icon: LICON.library,    label: "Prompts Prontos", isPrompts: true },
+    { action: "sidebar",     icon: LICON.panelRight, label: "Modo Sidebar" },
+    { action: "prompts",     icon: LICON.wrench,     label: "Atalhos", isPrompts: true },
+    { action: "optimize",    icon: LICON.sparkles,   label: "Otimizar" },
+    { action: "skill",       icon: LICON.wand,       label: "Inserir Skill" },
+    { action: "new-project", icon: LICON.filePlus,   label: "Criar projeto novo" },
+    { action: "download",    icon: LICON.download,   label: "Baixar projeto" },
+    { action: "watermark",   icon: LICON.badgeX,     label: "Remover marca d'água" },
+    { action: "notifications", icon: LICON.bell,     label: "Notificações" },
   ];
 
   // Determine which side of the preview the launcher is on, to align the
@@ -1420,6 +1430,13 @@
     } else if (action === "prompts") {
       if (document.getElementById(SUBMENU_ID)) { closeSubmenu(); return; }
       openPromptsSubmenu();
+    } else if (action === "skill") {
+      showStatus("✨ Abra a aba Skills no painel para inserir uma skill", "success");
+      closeMenu();
+    } else if (action === "new-project") {
+      try { window.open("https://lovable.dev/", "_blank"); } catch (_) {}
+      showStatus("🆕 Abrindo Lovable para criar um novo projeto…");
+      closeMenu();
     }
   }
 
