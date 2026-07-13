@@ -407,25 +407,26 @@ function ChoicePreview() {
 ============================================================ */
 function FixedPreview({ srcDoc }: { srcDoc: string }) {
   return (
-    <div className="relative flex flex-1">
+    <div className="relative flex flex-1 min-w-0">
       <DesktopBackground />
       <div
-        className="absolute right-0 top-0 h-full border-l shadow-[-8px_0_24px_rgba(0,0,0,0.15)]"
+        className="absolute right-0 top-0 h-full border-l shadow-[-8px_0_24px_rgba(0,0,0,0.15)] bg-white"
         style={{
-          width: 380,
+          width: "min(380px, 100%)",
           borderColor: "rgba(0,159,227,0.2)",
         }}
       >
         <iframe
           title="UEDA EX Sidepanel"
           srcDoc={srcDoc}
-          style={{ width: "100%", height: "100%", border: 0, display: "block" }}
+          style={{ width: "100%", height: "100%", border: 0, display: "block", background: "#fff" }}
           sandbox="allow-same-origin"
         />
       </div>
     </div>
   );
 }
+
 
 /* ============================================================
    FLOATING: pulsing logo → icon rail → expandable to names
