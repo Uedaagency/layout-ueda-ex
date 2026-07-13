@@ -330,6 +330,48 @@
         box-shadow: 0 0 6px #fff !important;
       }
 
+      /* Extension quick actions pinned to the native Lovable chat in floating mode */
+      #${CHAT_TOOLS_ID} {
+        position: fixed !important;
+        z-index: 2147483646 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 4px !important;
+        border-radius: 999px !important;
+        background: rgba(17, 24, 39, 0.72) !important;
+        border: 1px solid rgba(255,255,255,0.20) !important;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18) !important;
+        -webkit-backdrop-filter: blur(14px) saturate(145%) !important;
+        backdrop-filter: blur(14px) saturate(145%) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        pointer-events: auto !important;
+      }
+      #${CHAT_TOOLS_ID} .ts-chat-tool {
+        width: 30px !important;
+        height: 30px !important;
+        border: 0 !important;
+        border-radius: 999px !important;
+        background: transparent !important;
+        color: #ffffff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        transition: transform .16s ease, background .16s ease, color .16s ease !important;
+      }
+      #${CHAT_TOOLS_ID} .ts-chat-tool:hover {
+        background: rgba(var(--ts-brand-primary-rgb), 0.26) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+      }
+      #${CHAT_TOOLS_ID} .ts-chat-tool svg {
+        width: 16px !important;
+        height: 16px !important;
+        pointer-events: none !important;
+      }
+
       /* ===== FAB-style vertical menu (glass) ===== */
       #${MENU_ID}, #${SUBMENU_ID} {
         position: fixed !important;
