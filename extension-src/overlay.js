@@ -1674,6 +1674,21 @@
       try { window.open("https://lovable.dev/", "_blank"); } catch (_) {}
       showStatus("🆕 Abrindo Lovable para criar um novo projeto…");
       closeMenu();
+    } else if (action === "toggle-here") {
+      const host = tsCurrentHost();
+      try {
+        chrome.storage.local.get({ tsExtensionDisabledHosts: [] }, (r) => {
+          const list = Array.isArray(r && r.tsExtensionDisabledHosts) ? r.tsExtensionDisabledHosts.slice() : [];
+          const i = list.indexOf(host);
+          if (i === -1) list.push(host); else list.splice(i, 1);
+          chrome.storage.local.set({ tsExtensionDisabledHosts: list }, () => {
+            overlayFeaturesDisabled = tsIsHostDisabled(list);
+            refreshOverlayMode();
+            showStatus(overlayFeaturesDisabled ? "🔕 Extensão desativada neste site" : "🔔 Extensão ativada neste site", "success");
+            closeMenu();
+          });
+        });
+      } catch (_) { closeMenu(); }
     }
   }
 
