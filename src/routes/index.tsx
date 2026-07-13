@@ -422,3 +422,83 @@ function ExtensionPreview() {
     </div>
   );
 }
+
+function FakeSiteContent() {
+  return (
+    <div className="flex-1 space-y-4 p-8">
+      <div className="h-8 w-2/3 rounded bg-slate-200" />
+      <div className="h-4 w-1/2 rounded bg-slate-100" />
+      <div className="mt-8 grid grid-cols-3 gap-4">
+        <div className="h-32 rounded-lg bg-slate-100" />
+        <div className="h-32 rounded-lg bg-slate-100" />
+        <div className="h-32 rounded-lg bg-slate-100" />
+      </div>
+      <div className="mt-6 h-4 w-3/4 rounded bg-slate-100" />
+      <div className="h-4 w-2/3 rounded bg-slate-100" />
+      <div className="h-4 w-1/2 rounded bg-slate-100" />
+    </div>
+  );
+}
+
+function CenteredPopupPreview({ srcDoc }: { srcDoc: string }) {
+  return (
+    <div className="relative flex flex-1 items-center justify-center bg-slate-100">
+      <FakeSiteContent />
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" />
+      <div
+        className="relative overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-2xl"
+        style={{ width: 380, height: 620 }}
+      >
+        <iframe
+          title="UEDA EX Popup"
+          srcDoc={srcDoc}
+          style={{ width: "100%", height: "100%", border: 0, display: "block" }}
+          sandbox="allow-same-origin"
+        />
+      </div>
+    </div>
+  );
+}
+
+function FloatingPreview({ srcDoc }: { srcDoc: string }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="relative flex-1">
+      <FakeSiteContent />
+      {open ? (
+        <div
+          className="absolute overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-2xl"
+          style={{ width: 360, height: 560, right: 24, bottom: 96 }}
+        >
+          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] text-slate-500">
+            <span>Widget flutuante</span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded px-2 py-0.5 hover:bg-slate-200"
+            >
+              ✕
+            </button>
+          </div>
+          <iframe
+            title="UEDA EX Floating"
+            srcDoc={srcDoc}
+            style={{ width: "100%", height: "calc(100% - 28px)", border: 0, display: "block" }}
+            sandbox="allow-same-origin"
+          />
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="absolute flex h-14 w-14 items-center justify-center rounded-full bg-[#009FE3] text-white shadow-2xl shadow-[#009FE3]/40 transition hover:scale-105"
+        style={{ right: 24, bottom: 24 }}
+        title="Abrir/fechar widget"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
+      </button>
+    </div>
+  );
+}
