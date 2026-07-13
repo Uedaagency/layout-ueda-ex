@@ -1093,8 +1093,9 @@
       tools.id = CHAT_TOOLS_ID;
       tools.innerHTML =
         `<button type="button" class="ts-chat-tool" data-chat-action="attach" title="Anexar imagem" aria-label="Anexar imagem">${LICON.paperclip}</button>` +
-        `<button type="button" class="ts-chat-tool" data-chat-action="new-project" title="Novo projeto" aria-label="Novo projeto">${LICON.filePlus}</button>` +
-        `<button type="button" class="ts-chat-tool" data-chat-action="download" title="Baixar projeto" aria-label="Baixar projeto">${LICON.download}</button>`;
+        `<button type="button" class="ts-chat-tool" data-chat-action="optimize" title="Reescrever" aria-label="Reescrever">${LICON.sparkles}</button>` +
+        `<button type="button" class="ts-chat-tool" data-chat-action="download" title="Baixar projeto" aria-label="Baixar projeto">${LICON.download}</button>` +
+        `<button type="button" class="ts-chat-tool" data-chat-action="watermark" title="Remover marca d'água" aria-label="Remover marca d'água">${LICON.badgeX}</button>`;
       document.body.appendChild(tools);
       tools.querySelectorAll("[data-chat-action]").forEach((btn) => {
         btn.addEventListener("click", (e) => {
@@ -1102,8 +1103,7 @@
           e.stopPropagation();
           const action = btn.getAttribute("data-chat-action");
           if (action === "attach") triggerPopupAttach();
-          else if (action === "new-project") { runIframeAction("new-project"); showStatus("🆕 Criando novo projeto…"); }
-          else if (action === "download") { runIframeAction("download"); showStatus("⏳ Baixando projeto…"); }
+          else handleMenuAction(action);
         });
       });
     }
