@@ -338,38 +338,80 @@
           opacity 200ms ease !important;
       }
       #${MENU_ID} .ts-fab-label, #${SUBMENU_ID} .ts-fab-label {
-        position: absolute !important;
-        top: 50% !important;
-        transform: translateY(-50%) translateX(6px) !important;
-        padding: 8px 14px !important;
+        display: none !important;
+      }
+      /* Rail collapse chevron (top of the dark rail) */
+      #${MENU_ID} .ts-rail-toggle {
+        width: 28px !important; height: 28px !important;
+        min-width: 28px !important; max-width: 28px !important;
         border-radius: 999px !important;
+        background: rgba(255,255,255,0.06) !important;
+        border: 1px solid rgba(255,255,255,0.10) !important;
+        color: #fff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        margin-bottom: 2px !important;
+      }
+      #${MENU_ID} .ts-rail-toggle svg { width: 14px !important; height: 14px !important; stroke: #fff !important; }
+
+      /* White companion labels panel */
+      #${LABELS_ID} {
+        position: fixed !important;
+        z-index: 2147483647 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        padding: 12px 10px !important;
         background: #ffffff !important;
-        color: #0f2a42 !important;
         border: 1px solid rgba(15,42,66,0.08) !important;
-        line-height: 1.2 !important;
-        font-weight: 700 !important;
-        font-size: 12px !important;
-        letter-spacing: 0.01em !important;
-        box-shadow: 0 10px 24px rgba(0,0,0,0.18) !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        transition: opacity 160ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1) !important;
-      }
-      #${MENU_ID}[data-align="right"] .ts-fab-label,
-      #${SUBMENU_ID}[data-align="right"] .ts-fab-label {
-        right: calc(100% + 14px) !important;
-        left: auto !important;
-      }
-      #${MENU_ID}[data-align="left"] .ts-fab-label,
-      #${SUBMENU_ID}[data-align="left"] .ts-fab-label {
-        left: calc(100% + 14px) !important;
-        right: auto !important;
-      }
-      #${MENU_ID} .ts-fab-item:hover .ts-fab-label,
-      #${SUBMENU_ID} .ts-fab-item:hover .ts-fab-label {
+        border-radius: 18px !important;
+        box-shadow: 0 20px 45px rgba(0,0,0,0.18) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        min-width: 190px !important;
+        max-width: 220px !important;
+        box-sizing: border-box !important;
         opacity: 1 !important;
-        transform: translateY(-50%) translateX(0) !important;
+        transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22,1,0.36,1) !important;
       }
+      #${LABELS_ID}.ts-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(6px) !important; }
+      #${LABELS_ID} .ts-label-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        background: transparent !important;
+        border: none !important;
+        color: #0f2a42 !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        text-align: left !important;
+        width: 100% !important;
+        transition: background 140ms ease, color 140ms ease !important;
+        font-family: inherit !important;
+      }
+      #${LABELS_ID} .ts-label-row .ts-label-ico {
+        width: 18px !important; height: 18px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #0f2a42 !important;
+        flex: 0 0 18px !important;
+      }
+      #${LABELS_ID} .ts-label-row .ts-label-ico svg { width: 16px !important; height: 16px !important; stroke: currentColor !important; }
+      #${LABELS_ID} .ts-label-row:hover,
+      #${LABELS_ID} .ts-label-row.ts-active {
+        background: #0f2a42 !important;
+        color: #ffffff !important;
+      }
+      #${LABELS_ID} .ts-label-row:hover .ts-label-ico,
+      #${LABELS_ID} .ts-label-row.ts-active .ts-label-ico { color: #ffffff !important; }
+
+
       #${MENU_ID}[data-align="left"] .ts-fab-item,
       #${SUBMENU_ID}[data-align="left"] .ts-fab-item { flex-direction: row !important; }
       #${MENU_ID}[data-align="right"] .ts-fab-item,
