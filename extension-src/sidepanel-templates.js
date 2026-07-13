@@ -201,6 +201,34 @@ function spTemplateLicenseGate() {
   '</div>';
 }
 
+function spTemplateModeChooser() {
+  return '<div class="sp-mode-chooser">' +
+    '<div class="sp-mode-hero">' +
+      '<img class="sp-mode-logo" src="/icons/icon128.png" alt="logo">' +
+      '<h2 class="sp-mode-title">Licença ativada!</h2>' +
+      '<p class="sp-mode-desc">Como você prefere usar a extensão?</p>' +
+    '</div>' +
+    '<div class="sp-mode-grid">' +
+      '<button class="sp-mode-card" data-mode="sidebar">' +
+        '<div class="sp-mode-illus">' +
+          '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg>' +
+        '</div>' +
+        '<div class="sp-mode-name">Painel Fixo</div>' +
+        '<div class="sp-mode-sub">Ancorado na lateral do navegador</div>' +
+      '</button>' +
+      '<button class="sp-mode-card" data-mode="popup">' +
+        '<div class="sp-mode-illus">' +
+          '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="4"/><rect x="12" y="12" width="9" height="9" rx="2"/></svg>' +
+        '</div>' +
+        '<div class="sp-mode-name">Flutuante</div>' +
+        '<div class="sp-mode-sub">Botão + popups sobre a página</div>' +
+      '</button>' +
+    '</div>' +
+    '<button class="sp-mode-skip" id="sp-mode-skip">Decidir depois</button>' +
+  '</div>';
+}
+
+
 function spTemplateMainUI(greeting, statusBadge) {
   return '<div id="sp-update-banner" style="display:none"></div>' +
     '<div class="sp-profile-card">' +
