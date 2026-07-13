@@ -2128,19 +2128,9 @@
         }, true);
       });
     }
-    const mic = findNativeMicButton();
-    if (mic && !mic[TS_BOUND_FLAG]) {
-      mic[TS_BOUND_FLAG] = true;
-      ["pointerdown","mousedown","click"].forEach((t) => {
-        mic.addEventListener(t, (ev) => {
-          if (!isPopupNativeModeActive()) return;
-          ev.preventDefault();
-          ev.stopPropagation();
-          if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
-          if (t === "click") togglePopupVoice();
-        }, true);
-      });
-    }
+    // Native microphone: intentionally NOT intercepted — the Lovable mic must
+    // keep working as-is. (Extension mic disabled per user request.)
+    // const mic = findNativeMicButton(); ...
     const send = findNativeSendButton();
     if (send && !send[TS_BOUND_FLAG]) {
       send[TS_BOUND_FLAG] = true;
