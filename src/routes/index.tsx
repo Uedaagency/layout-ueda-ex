@@ -1,5 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import {
+  Zap,
+  Sparkles,
+  FilePlus2,
+  Download,
+  Eraser,
+  User,
+  MessageSquare,
+  type LucideIcon,
+} from "lucide-react";
 import sidepanelCss from "../extension-assets/sidepanel.css?raw";
 
 export type ViewMode = "entry" | "choice" | "fixed" | "floating";
