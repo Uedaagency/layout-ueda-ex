@@ -1511,7 +1511,8 @@
     const chars = Array.from(s);
     return chars.slice(0, 2).join("") || "⚡";
   }
-  function openPromptsSubmenu() {
+  function openPromptsSubmenu() { /* deprecated: shortcuts now open in a centered popup */ return; }
+  function _legacyOpenPromptsSubmenu_disabled() {
     closeSubmenu();
     const menu = document.getElementById(MENU_ID);
     if (!menu) return;
