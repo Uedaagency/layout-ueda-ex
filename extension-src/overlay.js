@@ -1450,7 +1450,7 @@
     { action: "new-project",  icon: LICON.filePlus,   label: "Criar projeto novo" },
     { action: "download",     icon: LICON.download,   label: "Baixar projeto" },
     { action: "watermark",    icon: LICON.badgeX,     label: "Remover marca d'água" },
-    { action: "history",      icon: LICON.history,    label: "Histórico" },
+    
     { action: "sidebar",      icon: LICON.panelRight, label: "Painel lateral" },
     { action: "toggle-here",  icon: LICON.powerOn,    label: "Extensão ON", dynamic: "toggle" },
   ];
