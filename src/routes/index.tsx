@@ -536,13 +536,16 @@ function FloatingPreview() {
           />
         )}
         <span
-          className="relative flex h-14 w-14 items-center justify-center rounded-2xl text-white font-black text-xl shadow-2xl"
+          className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-2xl overflow-hidden"
           style={{
-            background: `linear-gradient(135deg, ${BRAND}, ${BRAND_DARK})`,
             boxShadow: `0 10px 40px ${BRAND}80`,
           }}
         >
-          {expanded ? <X size={22} strokeWidth={2.2} /> : "U"}
+          {expanded ? (
+            <X size={22} strokeWidth={2.2} color={BRAND_DARK} />
+          ) : (
+            <img src={uedaLogo.url} alt="Ueda EX" className="h-10 w-10 object-contain" />
+          )}
         </span>
       </button>
 
