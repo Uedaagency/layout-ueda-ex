@@ -2458,8 +2458,9 @@
     injectGlobalStyles();
     buildOverlay();
     try {
-      chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "popup", ql_license_valid: false, tsModeChoicePending: false }, (r) => {
+      chrome.storage.local.get({ sidebarCollapsed: false, tsExtensionLayoutMode: "popup", ql_license_valid: false, tsModeChoicePending: false, tsExtensionDisabledHosts: [] }, (r) => {
         flowModalActive = !(r && r.ql_license_valid) || Boolean(r && r.tsModeChoicePending);
+        overlayFeaturesDisabled = tsIsHostDisabled(r && r.tsExtensionDisabledHosts);
         applyLayoutMode((r && r.tsExtensionLayoutMode) || "popup");
         applyCollapsedState(Boolean(r && r.sidebarCollapsed));
       });
