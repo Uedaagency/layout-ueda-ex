@@ -1918,8 +1918,7 @@
 
   function handleMenuAction(action) {
     if (action === "sidebar") {
-      applyLayoutMode("sidebar");
-      try { chrome.storage.local.set({ tsExtensionLayoutMode: "sidebar" }); } catch (_) {}
+      setLayoutModeFromUser("sidebar");
       closeMenu();
     } else if (action === "watermark") {
       runIframeAction("watermark");
@@ -3205,8 +3204,7 @@
       try { chrome.storage.local.set({ sidebarCollapsed: Boolean(data.collapsed) }); } catch (_) {}
     } else if (data.type === "TS_OVERLAY_SET_LAYOUT") {
       const mode = (data.mode === "popup" || data.mode === "floating") ? "popup" : "sidebar";
-      applyLayoutMode(mode);
-      try { chrome.storage.local.set({ tsExtensionLayoutMode: mode, tsModeChoicePending: false }); } catch (_) {}
+      setLayoutModeFromUser(mode);
     } else if (data.type === "TS_OVERLAY_TEMPLATES") {
       if (Array.isArray(data.templates)) {
         promptTemplates = data.templates.slice(0, 24);
