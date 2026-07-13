@@ -18,6 +18,7 @@
   const STYLE_ID = "ts-community-overlay-style";
   const LAUNCHER_ID = "ts-floating-launcher";
   const MENU_ID = "ts-floating-action-menu";
+  const LABELS_ID = "ts-floating-labels-panel";
   const SUBMENU_ID = "ts-floating-submenu";
   const NOTIF_PANEL_ID = "ts-notification-panel";
   const COMPOSER_WRAP_CLASS = "ts-native-composer-wrap";
