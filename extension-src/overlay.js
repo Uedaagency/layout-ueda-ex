@@ -2399,7 +2399,7 @@
     return false;
   }
 
-  function attachFilesViaIframe(files) {
+  async function attachFilesViaIframe(files) {
     const arr = Array.from(files || []).filter(Boolean);
     if (!arr.length) return;
     // Popup mode must use the hidden sidepanel upload pipeline. Synthetic
@@ -2407,9 +2407,16 @@
     // not actually registering the files in Lovable's send payload, leaving
     // images stuck in the composer. The sidepanel path converts images to inline
     // data and sends them together with the native composer text.
-    showStatus("📎 Enviando " + arr.length + " arquivo(s)…");
-    postToIframe({ type: "TS_POPUP_ACTION", action: "attach", files: arr });
     try { addPopupAttachments(arr); } catch (_) {}
+    showStatus("📎 Preparando " + arr.length + " arquivo(s)…");
+    try {
+      const filesForIframe = await serializeFilesForIframe(arr);
+      const ok = postToIframe({ type: "TS_POPUP_ACTION", action: "attach", files: filesForIframe });
+      if (ok) showStatus("📎 Enviando anexo para a extensão…");
+      else showStatus("✗ Painel não pronto para anexar.", "error");
+    } catch (err) {
+      showStatus("✗ Falha ao preparar anexo: " + ((err && err.message) || ""), "error");
+    }
   }
 
 
