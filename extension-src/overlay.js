@@ -1334,7 +1334,7 @@
   const MAIN_ITEMS = [
     { action: "user",         icon: LICON.user,       label: "Usuário" },
     { action: "prompts",      icon: LICON.wrench,     label: "Atalhos" },
-    { action: "optimize",     icon: LICON.sparkles,   label: "Otimizar" },
+    { action: "optimize",     icon: LICON.sparkles,   label: "Reescrever" },
     { action: "skill",        icon: LICON.wand,       label: "Inserir Skill" },
     { action: "new-project",  icon: LICON.filePlus,   label: "Criar projeto novo" },
     { action: "download",     icon: LICON.download,   label: "Baixar projeto" },
