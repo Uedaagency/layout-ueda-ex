@@ -468,6 +468,7 @@
 
     const root = document.createElement("div");
     root.id = ROOT_ID;
+    root.classList.add("ts-flow-modal-mode");
 
     const iframe = document.createElement("iframe");
     iframe.id = IFRAME_ID;
