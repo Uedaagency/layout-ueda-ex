@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import sidepanelCss from "../extension-assets/sidepanel.css?raw";
+import uedaLogo from "../assets/ueda-logo.png.asset.json";
 
 export type ViewMode = "entry" | "choice" | "fixed" | "floating";
 
@@ -255,16 +256,18 @@ function GlassPanel({
 function BrandLogo({ size = 56 }: { size?: number }) {
   return (
     <div
-      className="flex items-center justify-center rounded-2xl text-white font-black shadow-lg"
+      className="flex items-center justify-center rounded-2xl overflow-hidden bg-white shadow-lg"
       style={{
         width: size,
         height: size,
-        background: `linear-gradient(135deg, ${BRAND}, ${BRAND_DARK})`,
-        fontSize: size * 0.4,
         boxShadow: `0 10px 30px ${BRAND}55`,
       }}
     >
-      U
+      <img
+        src={uedaLogo.url}
+        alt="Ueda EX"
+        style={{ width: size * 0.72, height: size * 0.72, objectFit: "contain" }}
+      />
     </div>
   );
 }
@@ -533,13 +536,16 @@ function FloatingPreview() {
           />
         )}
         <span
-          className="relative flex h-14 w-14 items-center justify-center rounded-2xl text-white font-black text-xl shadow-2xl"
+          className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-2xl overflow-hidden"
           style={{
-            background: `linear-gradient(135deg, ${BRAND}, ${BRAND_DARK})`,
             boxShadow: `0 10px 40px ${BRAND}80`,
           }}
         >
-          {expanded ? <X size={22} strokeWidth={2.2} /> : "U"}
+          {expanded ? (
+            <X size={22} strokeWidth={2.2} color={BRAND_DARK} />
+          ) : (
+            <img src={uedaLogo.url} alt="Ueda EX" className="h-10 w-10 object-contain" />
+          )}
         </span>
       </button>
 
