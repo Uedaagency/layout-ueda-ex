@@ -255,16 +255,18 @@ function GlassPanel({
 function BrandLogo({ size = 56 }: { size?: number }) {
   return (
     <div
-      className="flex items-center justify-center rounded-2xl text-white font-black shadow-lg"
+      className="flex items-center justify-center rounded-2xl overflow-hidden bg-white shadow-lg"
       style={{
         width: size,
         height: size,
-        background: `linear-gradient(135deg, ${BRAND}, ${BRAND_DARK})`,
-        fontSize: size * 0.4,
         boxShadow: `0 10px 30px ${BRAND}55`,
       }}
     >
-      U
+      <img
+        src={uedaLogo.url}
+        alt="Ueda EX"
+        style={{ width: size * 0.72, height: size * 0.72, objectFit: "contain" }}
+      />
     </div>
   );
 }
