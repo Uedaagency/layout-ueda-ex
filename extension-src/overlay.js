@@ -817,6 +817,7 @@
     if (flowModalActive) {
       removeLauncher();
       removeNativeBadge();
+      removeNativeChatTools();
       clearComposerWrapMark();
       clearPopupSelectedSkill();
     } else if (isPopup) {
@@ -825,13 +826,16 @@
         installNativeButtonInterceptors();
         updateComposerWrapMark();
         updateNativeBadge();
+        ensureNativeChatTools();
       } else {
         removeNativeBadge();
+        removeNativeChatTools();
         clearComposerWrapMark();
       }
     } else {
       removeLauncher();
       removeNativeBadge();
+      removeNativeChatTools();
       clearComposerWrapMark();
       clearPopupSelectedSkill();
     }
