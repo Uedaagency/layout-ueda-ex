@@ -467,20 +467,22 @@ body { animation: sp-fade-in 0.4s ease-out; }
 }
 
 .sp-chip-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(200,76,255,0.12);
-  border: 1px solid rgba(200,76,255,0.14);
-  font-size: 18px;
+  background: transparent;
+  border: 0;
+  color: var(--ql-text-secondary);
 }
 
+.sp-chip-modern:hover .sp-chip-icon { color: var(--ts-brand-primary); }
+
 .sp-chip-icon svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.6;
 }
 
 .sp-compose-card {

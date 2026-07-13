@@ -19,19 +19,21 @@ download: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="c
   
 };
 
+const SP_MINI_ICON = (path) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
+
 const SP_TEMPLATES = [
   {
-    icon: "🛠️",
+    icon: SP_MINI_ICON('<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'),
     label: "Corrigir Bug",
     prompt: "Identifique falhas, erros de lógica e bugs no código fornecido. Forneça a correção exata para cada problema encontrado, acompanhada de uma explicação clara sobre a causa raiz e a solução aplicada, garantindo que o código funcione perfeitamente e sem erros."
   },
   {
-    icon: "♻️",
+    icon: SP_MINI_ICON('<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 21H3v-5"/>'),
     label: "Refatorar",
     prompt: "Analise a estrutura do código e proponha uma refatoração completa para torná-lo mais limpo, modular e seguindo os princípios SOLID e Clean Code. Reduza a complexidade ciclomática e melhore a legibilidade e manutenibilidade sem alterar a funcionalidade original."
   },
   {
-    icon: "🎨",
+    icon: SP_MINI_ICON('<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1"/><circle cx="12" cy="7" r="1"/><circle cx="15.5" cy="10" r="1"/><path d="M9 15c1 1.5 5 1.5 6 0"/>'),
     label: "Melhorar UI",
     prompt: `Você é um Diretor de Arte e Desenvolvedor Frontend de elite, reconhecido por criar interfaces premiadas (nível Awwwards/Apple). Seu objetivo é transformar a página atual em uma experiência visual "Premium", focada em sofisticação, minimalismo moderno e fluidez absoluta.
 
@@ -55,12 +57,12 @@ Pixel Perfection: Corrija pequenos desalinhamentos, bordas mal renderizadas ou e
 Diretriz de Execução: Analise a página atual como um crítico de design. Identifique o que a torna "comum" e aplique as mudanças necessárias para torná-la "extraordinária". O resultado final deve ser uma página que não apenas funcione perfeitamente, mas que transmita autoridade, luxo e atenção obsessiva aos detalhes.`
   },
   {
-    icon: "📖",
+    icon: SP_MINI_ICON('<path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M4 17a3 3 0 0 1 3-3h11"/>'),
     label: "Explicar Código",
     prompt: "Forneça uma explicação técnica detalhada e didática sobre o funcionamento deste código. Descreva o papel de cada função, componente e lógica de negócio, facilitando a compreensão do fluxo de dados e a arquitetura da solução para outros desenvolvedores."
   },
   {
-    icon: "⚡",
+    icon: SP_MINI_ICON('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'),
     label: "Otimizar",
     prompt: `Você é um Engenheiro de Software Principal (L6/L7) especializado em sistemas reativos de alta escala e otimização de infraestrutura frontend/backend. Seu objetivo é transformar o código atual em um estado de "World-Class Engineering".
 
@@ -86,7 +88,7 @@ Asset Pipeline: Garanta que todas as imagens usem formatos modernos (WebP/Avif),
 Diretriz de Resposta: Não apenas corrija o código; explique a decisão arquitetural tomada, o impacto esperado em milissegundos ou bytes, e como essa mudança previne débitos técnicos futuros. Se houver um trade-off entre legibilidade e performance extrema, justifique a escolha.`
   },
   {
-    icon: "🛡️",
+    icon: SP_MINI_ICON('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'),
     label: "Segurança",
     prompt: `Você é um Engenheiro de Segurança de nível Staff, especializado em OWASP Top 10, criptografia e infraestrutura segura. Sua missão é realizar um Security Audit profundo no sistema fornecido, identificar vulnerabilidades críticas e implementar correções imediatas (hotfixes) sem comprometer a disponibilidade.
 
@@ -112,12 +114,12 @@ Explique o impacto da correção na lógica de negócio e como validar que a vul
 Instrução de Execução: Não ignore falhas "teóricas". Trate cada brecha como um potencial ponto de entrada para um ataque real. Entregue um código blindado contra os ataques mais modernos da web.`
   },
   {
-    icon: "🧪",
+    icon: SP_MINI_ICON('<path d="M9 3h6"/><path d="M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/><path d="M7 15h10"/>'),
     label: "Criar Teste",
     prompt: "Desenvolva uma suíte abrangente de testes unitários para este código, cobrindo caminhos felizes e casos de borda. Utilize frameworks modernos e garanta uma alta cobertura de código, seguindo as melhores práticas de Clean Testing e isolamento de dependências."
   },
   {
-    icon: "📱",
+    icon: SP_MINI_ICON('<rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/>'),
     label: "Responsividade",
     prompt: `Você é um Especialista em Interfaces Adaptativas com foco em acessibilidade e performance mobile. Sua missão é refatorar a estrutura de uma página para que ela seja 100% responsiva, garantindo uma experiência nativa em qualquer resolução, de relógios inteligentes a monitores ultrawide.
 
