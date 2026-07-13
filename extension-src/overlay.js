@@ -2163,15 +2163,9 @@
               target.closest(`#${SUBMENU_ID}`) || target.closest(`#${LAUNCHER_ID}`)) return;
           const btn = target.closest("button, label");
           if (!btn) return;
-          const mic = findNativeMicButton();
           const attach = findNativeAttachButton();
           const send = findNativeSendButton();
-          if (mic && (btn === mic || mic.contains(btn))) {
-            e.preventDefault(); e.stopPropagation();
-            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-            if (t === "click") togglePopupVoice();
-            return;
-          }
+          // Native microphone left untouched — Lovable handles voice input.
           if (attach && (btn === attach || attach.contains(btn))) {
             e.preventDefault(); e.stopPropagation();
             if (e.stopImmediatePropagation) e.stopImmediatePropagation();
