@@ -1318,14 +1318,16 @@
   };
 
   const MAIN_ITEMS = [
-    { action: "user",        icon: LICON.user,       label: "Usuário" },
-    { action: "prompts",     icon: LICON.wrench,     label: "Atalhos" },
-    { action: "optimize",    icon: LICON.sparkles,   label: "Otimizar" },
-    { action: "skill",       icon: LICON.wand,       label: "Inserir Skill" },
-    { action: "new-project", icon: LICON.filePlus,   label: "Criar projeto novo" },
-    { action: "download",    icon: LICON.download,   label: "Baixar projeto" },
-    { action: "watermark",   icon: LICON.badgeX,     label: "Remover marca d'água" },
-    { action: "history",     icon: LICON.history,    label: "Histórico" },
+    { action: "user",         icon: LICON.user,       label: "Usuário" },
+    { action: "prompts",      icon: LICON.wrench,     label: "Atalhos" },
+    { action: "optimize",     icon: LICON.sparkles,   label: "Otimizar" },
+    { action: "skill",        icon: LICON.wand,       label: "Inserir Skill" },
+    { action: "new-project",  icon: LICON.filePlus,   label: "Criar projeto novo" },
+    { action: "download",     icon: LICON.download,   label: "Baixar projeto" },
+    { action: "watermark",    icon: LICON.badgeX,     label: "Remover marca d'água" },
+    { action: "history",      icon: LICON.history,    label: "Histórico" },
+    { action: "sidebar",      icon: LICON.panelRight, label: "Painel lateral" },
+    { action: "toggle-here",  icon: LICON.badgeX,     label: "Desativar aqui", dynamic: "toggle" },
   ];
 
   // Determine which side of the preview the launcher is on, to align the
