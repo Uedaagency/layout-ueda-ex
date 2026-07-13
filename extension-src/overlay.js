@@ -177,9 +177,10 @@
         transition: transform 200ms ease, border-color 200ms ease !important;
         user-select: none !important;
         touch-action: none !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         isolation: isolate !important;
       }
+
       #${LAUNCHER_ID}::before,
       #${LAUNCHER_ID}::after {
         content: "" !important;
