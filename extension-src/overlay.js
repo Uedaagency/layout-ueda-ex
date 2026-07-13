@@ -1300,17 +1300,19 @@
     filePlus:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M12 12v6"/></svg>',
     chevronR:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
     chevronL:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+    user:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    history:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>',
   };
 
   const MAIN_ITEMS = [
-    { action: "sidebar",     icon: LICON.panelRight, label: "Modo Sidebar" },
-    { action: "prompts",     icon: LICON.wrench,     label: "Atalhos", isPrompts: true },
+    { action: "user",        icon: LICON.user,       label: "Usuário" },
+    { action: "prompts",     icon: LICON.wrench,     label: "Atalhos" },
     { action: "optimize",    icon: LICON.sparkles,   label: "Otimizar" },
     { action: "skill",       icon: LICON.wand,       label: "Inserir Skill" },
     { action: "new-project", icon: LICON.filePlus,   label: "Criar projeto novo" },
     { action: "download",    icon: LICON.download,   label: "Baixar projeto" },
     { action: "watermark",   icon: LICON.badgeX,     label: "Remover marca d'água" },
-    { action: "notifications", icon: LICON.bell,     label: "Notificações" },
+    { action: "history",     icon: LICON.history,    label: "Histórico" },
   ];
 
   // Determine which side of the preview the launcher is on, to align the
