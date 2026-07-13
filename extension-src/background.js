@@ -274,7 +274,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
         const results = await chrome.scripting.executeScript({
           target: { tabId: tab.id },
-          world: 'MAIN',
+          world: 'ISOLATED',
           func: async (url, options) => {
             try {
               const r = await fetch(url, options);
