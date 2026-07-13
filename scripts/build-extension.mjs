@@ -16,10 +16,24 @@ const SRC = join(ROOT, 'extension-src');
 const OUT = join(ROOT, '.ext-build');
 const ZIP = join(ROOT, 'public', 'ueda-ex.zip');
 
-// Files to skip obfuscation (already minified vendor libs — reprocessing
-// them wastes time and can break them).
+// Files to skip obfuscation entirely (third-party libs whose own protection
+// would break, or where re-obfuscation risks runtime failure).
 const SKIP_OBFUSCATION = new Set([
   'jszip.min.js',
+  'castle-v2.js',
+]);
+
+// Files that inject functions into other pages via chrome.scripting.executeScript
+// ({ func }). The obfuscator hoists strings into a module-scope helper, but
+// executeScript serializes only the function body via .toString() — the helper
+// is left behind and every obfuscated string becomes undefined inside the
+// target page (silent crash → "sem resposta da página Lovable"). For these
+// files we use a lighter profile: rename identifiers only, keep strings and
+// control flow intact so the injected function stays self-contained.
+const LIGHT_OBFUSCATION_FILES = new Set([
+  'background.js',
+  'content.js',
+  'sidepanel.js',
 ]);
 
 // MV3-safe obfuscation options:
