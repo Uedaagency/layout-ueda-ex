@@ -142,3 +142,60 @@
     color: var(--color-foreground);
   }
 }
+
+/* ===== Ueda EX floating launcher orb (preview) ===== */
+.ueda-orb {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0.05) 55%, rgba(0,159,227,0.12) 100%),
+    rgba(10,25,45,0.28);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.4);
+  box-shadow:
+    0 8px 28px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.6),
+    inset 0 -6px 14px rgba(0,159,227,0.2);
+  isolation: isolate;
+}
+.ueda-orb-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 0;
+  background: conic-gradient(from 0deg,
+    rgba(0,159,227,0) 0deg,
+    rgba(0,159,227,0.55) 60deg,
+    rgba(120,220,255,0.9) 120deg,
+    rgba(0,159,227,0.55) 180deg,
+    rgba(0,159,227,0) 240deg,
+    rgba(0,159,227,0) 360deg);
+  -webkit-mask: radial-gradient(circle, transparent 55%, #000 58%, #000 72%, transparent 75%);
+          mask: radial-gradient(circle, transparent 55%, #000 58%, #000 72%, transparent 75%);
+  animation: uedaOrbSpin 6s linear infinite;
+  opacity: 0.9;
+}
+.ueda-orb-ring-2 {
+  -webkit-mask: radial-gradient(circle, transparent 72%, #000 76%, #000 88%, transparent 92%);
+          mask: radial-gradient(circle, transparent 72%, #000 76%, #000 88%, transparent 92%);
+  animation: uedaOrbSpin 9s linear infinite reverse;
+  opacity: 0.55;
+}
+.ueda-orb-wave {
+  position: absolute;
+  inset: 8px;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 80% 30% at 50% 45%, rgba(120,220,255,0.6), transparent 70%),
+    radial-gradient(ellipse 60% 20% at 50% 60%, rgba(0,159,227,0.5), transparent 70%);
+  filter: blur(2px);
+  animation: uedaOrbBreathe 3.2s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+@keyframes uedaOrbSpin { to { transform: rotate(360deg); } }
+@keyframes uedaOrbBreathe {
+  0%, 100% { transform: translateY(0) scaleY(1);    opacity: 0.75; }
+  50%      { transform: translateY(-2px) scaleY(1.35); opacity: 1; }
+}

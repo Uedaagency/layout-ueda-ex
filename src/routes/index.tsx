@@ -552,24 +552,19 @@ function FloatingPreview() {
         style={{ right: anchorRight, bottom: anchorBottom }}
         title={expanded ? "Fechar" : "Abrir extensão"}
       >
-        {!expanded && (
-          <span
-            className="absolute inset-0 rounded-full animate-ping"
-            style={{ background: BRAND, opacity: 0.35 }}
-          />
-        )}
         <span
-          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white overflow-hidden"
-          style={{
-            boxShadow: `0 10px 40px ${BRAND}70, 0 0 0 4px rgba(15,42,66,0.9)`,
-          }}
+          className="relative flex h-[60px] w-[60px] items-center justify-center rounded-full overflow-hidden ueda-orb"
         >
+          {!expanded && <span className="ueda-orb-ring ueda-orb-ring-1" />}
+          {!expanded && <span className="ueda-orb-ring ueda-orb-ring-2" />}
+          {!expanded && <span className="ueda-orb-wave" />}
           {expanded ? (
-            <X size={22} strokeWidth={2.2} color={BRAND_DARK} />
+            <X size={22} strokeWidth={2.2} color={BRAND_DARK} style={{ position: "relative", zIndex: 2 }} />
           ) : (
-            <img src={uedaLogo.url} alt="Ueda EX" className="h-9 w-9 object-contain" />
+            <img src={uedaLogo.url} alt="Ueda EX" className="h-[30px] w-[30px] object-contain relative z-[2]" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }} />
           )}
         </span>
+
       </button>
 
       {/* Centered popup for the active tab */}
