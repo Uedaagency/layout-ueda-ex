@@ -563,6 +563,18 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
     skills: "Skills",
     history: "Histórico",
     user: "Magda",
+    optimize: "Otimizar",
+    "insert-skill": "Inserir Skill",
+    "new-project": "Criar projeto novo",
+    download: "Baixar projeto",
+    "remove-watermark": "Remover marca d'água",
+  };
+  const descriptions: Partial<Record<Exclude<FloatingTab, null>, string>> = {
+    optimize: "Analisa o projeto e sugere melhorias de performance, código e UX.",
+    "insert-skill": "Adiciona uma skill personalizada ao contexto do agente.",
+    "new-project": "Cria um novo projeto em branco com a estrutura padrão.",
+    download: "Baixa o projeto atual como um arquivo .zip.",
+    "remove-watermark": "Remove marcas d'água aplicadas pela extensão.",
   };
   return (
     <div>
@@ -581,6 +593,9 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
       {tab === "skills" && <SkillsContent />}
       {tab === "history" && <HistoryContent />}
       {tab === "user" && <UserContent />}
+      {descriptions[tab] && (
+        <p className="text-sm text-slate-600 leading-relaxed">{descriptions[tab]}</p>
+      )}
     </div>
   );
 }
