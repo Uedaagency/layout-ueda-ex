@@ -1,5 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import {
+  Zap,
+  Sparkles,
+  FilePlus2,
+  Download,
+  Eraser,
+  User,
+  MessageSquare,
+  type LucideIcon,
+} from "lucide-react";
 import sidepanelCss from "../extension-assets/sidepanel.css?raw";
 
 export type ViewMode = "entry" | "choice" | "fixed" | "floating";
@@ -416,13 +426,16 @@ function FixedPreview({ srcDoc }: { srcDoc: string }) {
    FLOATING: pulsing logo → icon rail → expandable to names
    Tabs (Prompt/Skills/Histórico) and user icon open glass popups
 ============================================================ */
-type FloatingTab = null | "prompt" | "skills" | "history" | "user";
+type FloatingTab = null | "prompt" | "skills" | "history" | "user" | "optimize" | "insert-skill" | "new-project" | "download" | "remove-watermark";
 
-const RAIL_ITEMS: { id: Exclude<FloatingTab, null>; icon: string; label: string }[] = [
-  { id: "prompt", icon: "⚡", label: "Prompt" },
-  { id: "skills", icon: "⭐", label: "Skills" },
-  { id: "history", icon: "💬", label: "Histórico" },
-  { id: "user", icon: "👤", label: "Usuário" },
+const RAIL_ITEMS: { id: Exclude<FloatingTab, null>; icon: LucideIcon; label: string }[] = [
+  { id: "optimize", icon: Zap, label: "Otimizar" },
+  { id: "insert-skill", icon: Sparkles, label: "Inserir Skill" },
+  { id: "new-project", icon: FilePlus2, label: "Criar projeto novo" },
+  { id: "download", icon: Download, label: "Baixar projeto" },
+  { id: "remove-watermark", icon: Eraser, label: "Remover marca d'água" },
+  { id: "history", icon: MessageSquare, label: "Histórico" },
+  { id: "user", icon: User, label: "Usuário" },
 ];
 
 function FloatingPreview() {
@@ -500,9 +513,9 @@ function FloatingPreview() {
                   color: active ? BRAND_DARK : "#0a2540",
                 }}
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base"
-                  style={{ background: active ? BRAND : "rgba(255,255,255,.6)", color: active ? "#fff" : "inherit" }}>
-                  {it.icon}
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                  style={{ background: active ? BRAND : "rgba(255,255,255,.6)", color: active ? "#fff" : "#0a2540" }}>
+                  <it.icon size={16} strokeWidth={1.75} />
                 </span>
                 {showNames && (
                   <span className="truncate text-sm font-medium">{it.label}</span>
@@ -550,6 +563,18 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
     skills: "Skills",
     history: "Histórico",
     user: "Magda",
+    optimize: "Otimizar",
+    "insert-skill": "Inserir Skill",
+    "new-project": "Criar projeto novo",
+    download: "Baixar projeto",
+    "remove-watermark": "Remover marca d'água",
+  };
+  const descriptions: Partial<Record<Exclude<FloatingTab, null>, string>> = {
+    optimize: "Analisa o projeto e sugere melhorias de performance, código e UX.",
+    "insert-skill": "Adiciona uma skill personalizada ao contexto do agente.",
+    "new-project": "Cria um novo projeto em branco com a estrutura padrão.",
+    download: "Baixa o projeto atual como um arquivo .zip.",
+    "remove-watermark": "Remove marcas d'água aplicadas pela extensão.",
   };
   return (
     <div>
@@ -568,6 +593,9 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
       {tab === "skills" && <SkillsContent />}
       {tab === "history" && <HistoryContent />}
       {tab === "user" && <UserContent />}
+      {descriptions[tab] && (
+        <p className="text-sm text-slate-600 leading-relaxed">{descriptions[tab]}</p>
+      )}
     </div>
   );
 }
