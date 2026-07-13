@@ -16,10 +16,24 @@ const SRC = join(ROOT, 'extension-src');
 const OUT = join(ROOT, '.ext-build');
 const ZIP = join(ROOT, 'public', 'ueda-ex.zip');
 
-// Files to skip obfuscation (already minified vendor libs — reprocessing
-// them wastes time and can break them).
+// Files to skip obfuscation entirely (third-party libs whose own protection
+// would break, or where re-obfuscation risks runtime failure).
 const SKIP_OBFUSCATION = new Set([
   'jszip.min.js',
+  'castle-v2.js',
+]);
+
+// Files that inject functions into other pages via chrome.scripting.executeScript
+// ({ func }). The obfuscator hoists strings into a module-scope helper, but
+// executeScript serializes only the function body via .toString() — the helper
+// is left behind and every obfuscated string becomes undefined inside the
+// target page (silent crash → "sem resposta da página Lovable"). For these
+// files we use a lighter profile: rename identifiers only, keep strings and
+// control flow intact so the injected function stays self-contained.
+const LIGHT_OBFUSCATION_FILES = new Set([
+  'background.js',
+  'content.js',
+  'sidepanel.js',
 ]);
 
 // MV3-safe obfuscation options:
@@ -58,6 +72,28 @@ const OBFUSCATE_OPTS = {
   target: 'browser',
 };
 
+// Safe profile for files that inject functions into other pages. No string
+// hoisting, no control flow flattening, no dead code — the injected function
+// body must be self-contained after Function.prototype.toString().
+const LIGHT_OBFUSCATE_OPTS = {
+  compact: true,
+  controlFlowFlattening: false,
+  deadCodeInjection: false,
+  debugProtection: false,
+  disableConsoleOutput: false,
+  identifierNamesGenerator: 'hexadecimal',
+  log: false,
+  numbersToExpressions: false,
+  renameGlobals: false,
+  selfDefending: false,
+  simplify: true,
+  splitStrings: false,
+  stringArray: false,
+  transformObjectKeys: false,
+  unicodeEscapeSequence: false,
+  target: 'browser',
+};
+
 function walk(dir) {
   const out = [];
   for (const name of readdirSync(dir)) {
@@ -90,10 +126,15 @@ for (const file of files) {
     continue;
   }
   const code = readFileSync(file, 'utf8');
+  const base = rel.split(/[\\/]/).pop();
+  const opts = LIGHT_OBFUSCATION_FILES.has(rel) || LIGHT_OBFUSCATION_FILES.has(base)
+    ? LIGHT_OBFUSCATE_OPTS
+    : OBFUSCATE_OPTS;
+  const profile = opts === LIGHT_OBFUSCATE_OPTS ? 'light' : 'full';
   try {
-    const result = JavaScriptObfuscator.obfuscate(code, OBFUSCATE_OPTS).getObfuscatedCode();
+    const result = JavaScriptObfuscator.obfuscate(code, opts).getObfuscatedCode();
     writeFileSync(file, result);
-    console.log('  ok  ', rel);
+    console.log('  ok  ', rel, `(${profile})`);
   } catch (e) {
     console.error('  FAIL', rel, e.message);
     process.exit(1);
