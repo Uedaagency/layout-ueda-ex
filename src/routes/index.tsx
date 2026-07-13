@@ -1,24 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import sidepanelCss from "../extension-assets/sidepanel.css?raw";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Pré-configuração — UEDA EX" },
+      { title: "Preview — UEDA EX" },
       {
         name: "description",
         content:
-          "Configure a extensão UEDA EX visualmente com preview 1:1 do painel lateral real.",
+          "Simulação da extensão UEDA EX em uma tela de computador, exatamente como aparece no navegador.",
       },
-      { property: "og:title", content: "Pré-configuração UEDA EX" },
+      { property: "og:title", content: "Preview UEDA EX" },
       {
         property: "og:description",
-        content: "Ajustes de marca, cor e tema com preview idêntico à extensão.",
+        content: "Visualização 1:1 do painel lateral da extensão.",
       },
     ],
   }),
-  component: ConfigPreview,
+  component: ExtensionPreview,
 });
 
 type Theme = "dark" | "light";
@@ -59,13 +59,10 @@ function adjust(hex: string, delta: number) {
   return `#${to(r)}${to(g)}${to(b)}`;
 }
 
-// --- Real extension markup, mirrored from sidepanel.html + sidepanel-templates.js ---
 const SP_SVG = {
   mic: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
   shield:
     '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-  msgSq:
-    '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
   paperclip:
     '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
   eye: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
@@ -250,178 +247,61 @@ function escapeHtml(s: string) {
     .replace(/"/g, "&quot;");
 }
 
-function ConfigPreview() {
-  const [cfg, setCfg] = useState<Config>(DEFAULTS);
-  const update = <K extends keyof Config>(k: K, v: Config[K]) =>
-    setCfg((c) => ({ ...c, [k]: v }));
-  const srcDoc = useMemo(() => buildSrcDoc(cfg), [cfg]);
+function ExtensionPreview() {
+  const srcDoc = useMemo(() => buildSrcDoc(DEFAULTS), []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/60 bg-card/40 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-lg font-semibold tracking-tight">
-              Pré-configuração — UEDA EX
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              Preview 1:1 do painel lateral real. Ajustes atualizam em tempo real.
-            </p>
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+      {/* Simulação de tela de computador (monitor) */}
+      <div className="mx-auto flex max-w-[1400px] flex-col items-center">
+        <div className="w-full rounded-2xl border border-slate-700 bg-slate-950 p-3 shadow-2xl">
+          {/* Barra do navegador */}
+          <div className="flex items-center gap-2 rounded-t-lg bg-slate-800 px-4 py-2.5">
+            <div className="flex gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-red-500" />
+              <span className="h-3 w-3 rounded-full bg-yellow-500" />
+              <span className="h-3 w-3 rounded-full bg-green-500" />
+            </div>
+            <div className="ml-4 flex-1 truncate rounded-md bg-slate-700/60 px-3 py-1 text-xs text-slate-300">
+              chrome-extension://ueda-ex/sidepanel.html
+            </div>
           </div>
-          <button
-            onClick={() => setCfg(DEFAULTS)}
-            className="rounded-md border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-secondary/80"
-          >
-            Restaurar padrão
-          </button>
-        </div>
-      </header>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-        <SettingsPanel cfg={cfg} update={update} />
-        <div className="flex flex-col items-center gap-3 lg:sticky lg:top-6 lg:self-start">
-          <div className="text-xs font-medium text-muted-foreground">
-            Preview do painel lateral (380×951)
-          </div>
-          <div
-            className="overflow-hidden rounded-md border border-border shadow-2xl"
-            style={{ width: 380, height: 951 }}
-          >
-            <iframe
-              title="Preview da extensão"
-              srcDoc={srcDoc}
-              style={{ width: "100%", height: "100%", border: 0, display: "block" }}
-              sandbox="allow-same-origin"
-            />
+          {/* Área da "tela do computador" com a extensão à direita */}
+          <div className="relative flex h-[820px] overflow-hidden rounded-b-lg bg-white">
+            {/* Conteúdo simulado do site */}
+            <div className="flex-1 space-y-4 p-8">
+              <div className="h-8 w-2/3 rounded bg-slate-200" />
+              <div className="h-4 w-1/2 rounded bg-slate-100" />
+              <div className="mt-8 grid grid-cols-3 gap-4">
+                <div className="h-32 rounded-lg bg-slate-100" />
+                <div className="h-32 rounded-lg bg-slate-100" />
+                <div className="h-32 rounded-lg bg-slate-100" />
+              </div>
+              <div className="mt-6 h-4 w-3/4 rounded bg-slate-100" />
+              <div className="h-4 w-2/3 rounded bg-slate-100" />
+              <div className="h-4 w-1/2 rounded bg-slate-100" />
+            </div>
+
+            {/* Painel lateral real da extensão */}
+            <div
+              className="border-l border-slate-200 shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
+              style={{ width: 380, height: "100%" }}
+            >
+              <iframe
+                title="UEDA EX Sidepanel"
+                srcDoc={srcDoc}
+                style={{ width: "100%", height: "100%", border: 0, display: "block" }}
+                sandbox="allow-same-origin"
+              />
+            </div>
           </div>
         </div>
+
+        <p className="mt-4 text-xs text-slate-400">
+          Simulação: extensão UEDA EX aberta como painel lateral no navegador.
+        </p>
       </div>
     </div>
-  );
-}
-
-function SettingsPanel({
-  cfg,
-  update,
-}: {
-  cfg: Config;
-  update: <K extends keyof Config>(k: K, v: Config[K]) => void;
-}) {
-  return (
-    <div className="space-y-6">
-      <style>{`
-        .cfg-input { width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--color-border); background:var(--color-secondary); color:var(--color-foreground); font-size:13px; outline:none; }
-        .cfg-input:focus { border-color:var(--color-primary); }
-      `}</style>
-
-      <Section title="Identidade da marca">
-        <Field label="Nome da marca">
-          <input
-            className="cfg-input"
-            value={cfg.brandName}
-            onChange={(e) => update("brandName", e.target.value)}
-          />
-        </Field>
-        <Field label="Saudação / e-mail exibido">
-          <input
-            className="cfg-input"
-            value={cfg.greeting}
-            onChange={(e) => update("greeting", e.target.value)}
-          />
-        </Field>
-        <Field label="Rodapé">
-          <input
-            className="cfg-input"
-            value={cfg.footerText}
-            onChange={(e) => update("footerText", e.target.value)}
-          />
-        </Field>
-      </Section>
-
-      <Section title="Aparência">
-        <Field label="Cor primária">
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={cfg.primaryColor}
-              onChange={(e) => update("primaryColor", e.target.value)}
-              className="h-10 w-14 cursor-pointer rounded-md border border-border bg-transparent"
-            />
-            <input
-              className="cfg-input flex-1 font-mono uppercase"
-              value={cfg.primaryColor}
-              onChange={(e) => update("primaryColor", e.target.value)}
-            />
-          </div>
-        </Field>
-        <Field label="Tema">
-          <div className="flex gap-2">
-            {(["dark", "light"] as Theme[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => update("theme", t)}
-                className={`flex-1 rounded-md border px-3 py-2 text-xs font-medium capitalize transition ${
-                  cfg.theme === t
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                }`}
-              >
-                {t === "dark" ? "Escuro" : "Claro"}
-              </button>
-            ))}
-          </div>
-        </Field>
-      </Section>
-
-      <Section title="Selo de licença">
-        <Field label="Texto do selo (header)">
-          <input
-            className="cfg-input"
-            maxLength={8}
-            value={cfg.badgeText}
-            onChange={(e) => update("badgeText", e.target.value.toUpperCase())}
-          />
-        </Field>
-        <Field label="Status">
-          <div className="flex gap-2">
-            {(["pro", "trial"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => update("status", s)}
-                className={`flex-1 rounded-md border px-3 py-2 text-xs font-medium uppercase transition ${
-                  cfg.status === s
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </Field>
-      </Section>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
-      <h2 className="mb-4 text-sm font-semibold tracking-tight text-foreground">
-        {title}
-      </h2>
-      <div className="space-y-3">{children}</div>
-    </section>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
-        {label}
-      </span>
-      {children}
-    </label>
   );
 }
