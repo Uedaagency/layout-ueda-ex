@@ -2206,7 +2206,9 @@
   // must route through this single function. It NEVER falls back to Lovable's
   // own send — that would drop the extension's uploaded files[] from the payload.
   function handlePopupNativeSend() {
+    if (overlayFeaturesDisabled) { tsDebug("[TS Popup] disabled — bypass"); return false; }
     tsDebug("[TS Popup] handlePopupNativeSend entered");
+
     const composer = findNativeComposer();
     const text = composer ? readComposerText(composer).trim() : "";
     const hasText = text.length > 0;
