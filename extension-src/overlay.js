@@ -21,6 +21,7 @@
   const LABELS_ID = "ts-floating-labels-panel";
   const SUBMENU_ID = "ts-floating-submenu";
   const NOTIF_PANEL_ID = "ts-notification-panel";
+  const CHAT_TOOLS_ID = "ts-native-chat-tools";
   const COMPOSER_WRAP_CLASS = "ts-native-composer-wrap";
   const TS_SIDEBAR_WIDTH = 380;
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwc3NhZWZwdG9uemJwZ2N2dHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY4NTUsImV4cCI6MjA5OTUyMjg1NX0.rZVreithJxc4w3T4W45zXTyATai3yjYennoa4nU9Uu8";
@@ -327,6 +328,48 @@
         border-radius: 999px !important;
         background: #fff !important;
         box-shadow: 0 0 6px #fff !important;
+      }
+
+      /* Extension quick actions pinned to the native Lovable chat in floating mode */
+      #${CHAT_TOOLS_ID} {
+        position: fixed !important;
+        z-index: 2147483646 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 4px !important;
+        border-radius: 999px !important;
+        background: rgba(17, 24, 39, 0.72) !important;
+        border: 1px solid rgba(255,255,255,0.20) !important;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18) !important;
+        -webkit-backdrop-filter: blur(14px) saturate(145%) !important;
+        backdrop-filter: blur(14px) saturate(145%) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        pointer-events: auto !important;
+      }
+      #${CHAT_TOOLS_ID} .ts-chat-tool {
+        width: 30px !important;
+        height: 30px !important;
+        border: 0 !important;
+        border-radius: 999px !important;
+        background: transparent !important;
+        color: #ffffff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        transition: transform .16s ease, background .16s ease, color .16s ease !important;
+      }
+      #${CHAT_TOOLS_ID} .ts-chat-tool:hover {
+        background: rgba(var(--ts-brand-primary-rgb), 0.26) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+      }
+      #${CHAT_TOOLS_ID} .ts-chat-tool svg {
+        width: 16px !important;
+        height: 16px !important;
+        pointer-events: none !important;
       }
 
       /* ===== FAB-style vertical menu (glass) ===== */
@@ -774,6 +817,7 @@
     if (flowModalActive) {
       removeLauncher();
       removeNativeBadge();
+      removeNativeChatTools();
       clearComposerWrapMark();
       clearPopupSelectedSkill();
     } else if (isPopup) {
@@ -782,13 +826,16 @@
         installNativeButtonInterceptors();
         updateComposerWrapMark();
         updateNativeBadge();
+        ensureNativeChatTools();
       } else {
         removeNativeBadge();
+        removeNativeChatTools();
         clearComposerWrapMark();
       }
     } else {
       removeLauncher();
       removeNativeBadge();
+      removeNativeChatTools();
       clearComposerWrapMark();
       clearPopupSelectedSkill();
     }
@@ -1033,6 +1080,55 @@
     const b = document.getElementById("ts-native-badge"); if (b) b.remove();
   }
 
+  function ensureNativeChatTools() {
+    if (currentLayoutMode !== "popup" || flowModalActive || overlayFeaturesDisabled) {
+      removeNativeChatTools();
+      return;
+    }
+    const composer = findNativeComposerWrap() || findNativeComposer();
+    if (!composer) { removeNativeChatTools(); return; }
+    let tools = document.getElementById(CHAT_TOOLS_ID);
+    if (!tools) {
+      tools = document.createElement("div");
+      tools.id = CHAT_TOOLS_ID;
+      tools.innerHTML =
+        `<button type="button" class="ts-chat-tool" data-chat-action="attach" title="Anexar imagem" aria-label="Anexar imagem">${LICON.paperclip}</button>` +
+        `<button type="button" class="ts-chat-tool" data-chat-action="new-project" title="Novo projeto" aria-label="Novo projeto">${LICON.filePlus}</button>` +
+        `<button type="button" class="ts-chat-tool" data-chat-action="download" title="Baixar projeto" aria-label="Baixar projeto">${LICON.download}</button>`;
+      document.body.appendChild(tools);
+      tools.querySelectorAll("[data-chat-action]").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const action = btn.getAttribute("data-chat-action");
+          if (action === "attach") triggerPopupAttach();
+          else if (action === "new-project") { runIframeAction("new-project"); showStatus("🆕 Criando novo projeto…"); }
+          else if (action === "download") { runIframeAction("download"); showStatus("⏳ Baixando projeto…"); }
+        });
+      });
+    }
+    positionNativeChatTools();
+  }
+
+  function positionNativeChatTools() {
+    const tools = document.getElementById(CHAT_TOOLS_ID);
+    if (!tools) return;
+    const wrap = findNativeComposerWrap() || findNativeComposer();
+    if (!wrap) { removeNativeChatTools(); return; }
+    const r = wrap.getBoundingClientRect();
+    const w = tools.offsetWidth || 118;
+    const h = tools.offsetHeight || 38;
+    const left = Math.max(8, Math.min(r.left + 44, window.innerWidth - w - 8));
+    const top = Math.max(8, r.top - h - 8);
+    tools.style.setProperty("left", left + "px", "important");
+    tools.style.setProperty("top", top + "px", "important");
+  }
+
+  function removeNativeChatTools() {
+    const tools = document.getElementById(CHAT_TOOLS_ID);
+    if (tools) tools.remove();
+  }
+
   // ===================== Selected Skill Badge (popup mode) =====================
   // When the user picks a skill via the slash picker, we don't write the
   // "/skill:..." prefix into the native textarea. Instead we keep the picked
@@ -1157,6 +1253,7 @@
     if (currentLayoutMode !== "popup") return;
     updateComposerWrapMark();
     updateNativeBadge();
+    ensureNativeChatTools();
     if (popupSelectedSkill) positionPopupSkillBadge();
     if (typeof popupAttachments !== "undefined" && popupAttachments.length) positionPopupAttachments();
     bindNativeButtonHandlers();
@@ -1165,12 +1262,14 @@
   window.addEventListener("scroll", () => {
     if (currentLayoutMode !== "popup") return;
     updateNativeBadge();
+    ensureNativeChatTools();
     if (popupSelectedSkill) positionPopupSkillBadge();
     if (typeof popupAttachments !== "undefined" && popupAttachments.length) positionPopupAttachments();
   }, true);
   window.addEventListener("resize", () => {
     if (currentLayoutMode !== "popup") return;
     updateNativeBadge();
+    ensureNativeChatTools();
     if (popupSelectedSkill) positionPopupSkillBadge();
     if (typeof popupAttachments !== "undefined" && popupAttachments.length) positionPopupAttachments();
   });
@@ -1431,6 +1530,7 @@
     sparkles:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>',
     library:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>',
     bell:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+    paperclip:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
     wrench:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
     wand:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>',
     filePlus:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M12 12v6"/></svg>',
@@ -1834,8 +1934,8 @@
       showStatus("✨ Abra a aba Skills no painel para inserir uma skill", "success");
       closeMenu();
     } else if (action === "new-project") {
-      try { window.open("https://lovable.dev/", "_blank"); } catch (_) {}
-      showStatus("🆕 Abrindo Lovable para criar um novo projeto…");
+      runIframeAction("new-project");
+      showStatus("🆕 Criando novo projeto…");
       closeMenu();
     } else if (action === "toggle-here") {
       const host = tsCurrentHost();
@@ -2209,6 +2309,34 @@
     return ok;
   }
 
+  function readFileAsDataUrlForIframe(file) {
+    return new Promise((resolve, reject) => {
+      try {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("Falha ao ler " + (file && file.name ? file.name : "arquivo")));
+        reader.readAsDataURL(file);
+      } catch (err) { reject(err); }
+    });
+  }
+
+  async function serializeFilesForIframe(files) {
+    const arr = Array.from(files || []).filter(Boolean);
+    const serialized = [];
+    for (const file of arr) {
+      const dataUrl = await readFileAsDataUrlForIframe(file);
+      serialized.push({
+        __tsFileDataUrl: true,
+        name: file.name || "image.png",
+        type: file.type || "application/octet-stream",
+        size: file.size || 0,
+        lastModified: file.lastModified || Date.now(),
+        dataUrl,
+      });
+    }
+    return serialized;
+  }
+
 
   // Inject File[] into Lovable's native composer so they travel with the next send.
   // Strategy (in order): native <input type="file">, paste event, drop event.
@@ -2271,7 +2399,7 @@
     return false;
   }
 
-  function attachFilesViaIframe(files) {
+  async function attachFilesViaIframe(files) {
     const arr = Array.from(files || []).filter(Boolean);
     if (!arr.length) return;
     // Popup mode must use the hidden sidepanel upload pipeline. Synthetic
@@ -2279,9 +2407,16 @@
     // not actually registering the files in Lovable's send payload, leaving
     // images stuck in the composer. The sidepanel path converts images to inline
     // data and sends them together with the native composer text.
-    showStatus("📎 Enviando " + arr.length + " arquivo(s)…");
-    postToIframe({ type: "TS_POPUP_ACTION", action: "attach", files: arr });
     try { addPopupAttachments(arr); } catch (_) {}
+    showStatus("📎 Preparando " + arr.length + " arquivo(s)…");
+    try {
+      const filesForIframe = await serializeFilesForIframe(arr);
+      const ok = postToIframe({ type: "TS_POPUP_ACTION", action: "attach", files: filesForIframe });
+      if (ok) showStatus("📎 Enviando anexo para a extensão…");
+      else showStatus("✗ Painel não pronto para anexar.", "error");
+    } catch (err) {
+      showStatus("✗ Falha ao preparar anexo: " + ((err && err.message) || ""), "error");
+    }
   }
 
 
