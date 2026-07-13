@@ -1523,11 +1523,52 @@
 
   function safePromptIcon(raw) {
     const s = String(raw || "").trim();
-    // Reject any HTML/SVG markup — only allow short plain text/emoji.
     if (!s || /[<>]/.test(s)) return "⚡";
-    // Use grapheme-safe slice for emoji.
     const chars = Array.from(s);
     return chars.slice(0, 2).join("") || "⚡";
+  }
+
+  // Minimalist per-shortcut SVG icons (line-style, matches rail aesthetic).
+  const PROMPT_SVG = {
+    bug:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.5 1.5M16 2l-1.5 1.5"/><rect x="6" y="7" width="12" height="12" rx="6"/><path d="M12 7v12M3 12h3M18 12h3M4 6l3 2M20 6l-3 2M4 18l3-2M20 18l-3-2"/></svg>',
+    refactor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+    ui:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2a10 10 0 1 0 0 20c1 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-5-4-9-9-9z"/></svg>',
+    explain:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+    optimize: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    security: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    test:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v6L4 20a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L14 8V2"/><path d="M8 2h8M7 14h10"/></svg>',
+    mobile:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>',
+    seo:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+    copy:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+    cards:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+    fix:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+    migrate:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 7h14"/><polyline points="16 4 19 7 16 10"/><polyline points="8 14 5 17 8 20"/></svg>',
+    motion:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>',
+    docs:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    review:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M8 11h6M11 8v6"/></svg>',
+    components:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22" x2="12" y2="12"/></svg>',
+    zap:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  };
+  function promptSvgFor(t) {
+    const l = String((t && t.label) || "").toLowerCase();
+    if (/bug|erro/.test(l)) return PROMPT_SVG.bug;
+    if (/refator/.test(l)) return PROMPT_SVG.refactor;
+    if (/melhorar ui|^ui\b|interface/.test(l)) return PROMPT_SVG.ui;
+    if (/explic/.test(l)) return PROMPT_SVG.explain;
+    if (/otimiz|performance/.test(l)) return PROMPT_SVG.optimize;
+    if (/segur/.test(l)) return PROMPT_SVG.security;
+    if (/test/.test(l)) return PROMPT_SVG.test;
+    if (/respons|mobile/.test(l)) return PROMPT_SVG.mobile;
+    if (/seo/.test(l)) return PROMPT_SVG.seo;
+    if (/copy|marketing|texto/.test(l)) return PROMPT_SVG.copy;
+    if (/card|bot(ã|a)o/.test(l)) return PROMPT_SVG.cards;
+    if (/fix|corrigir/.test(l)) return PROMPT_SVG.fix;
+    if (/migra/.test(l)) return PROMPT_SVG.migrate;
+    if (/transi|anima|motion/.test(l)) return PROMPT_SVG.motion;
+    if (/coment|doc/.test(l)) return PROMPT_SVG.docs;
+    if (/review|revis/.test(l)) return PROMPT_SVG.review;
+    if (/componente/.test(l)) return PROMPT_SVG.components;
+    return PROMPT_SVG.zap;
   }
   function openPromptsSubmenu() { /* deprecated: shortcuts now open in a centered popup */ return; }
   function _legacyOpenPromptsSubmenu_disabled() {
