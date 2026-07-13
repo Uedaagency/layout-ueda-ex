@@ -277,10 +277,15 @@
         visibility: visible !important;
         margin: 0 !important;
         padding: 10px 8px !important;
+        width: 54px !important;
+        min-width: 54px !important;
+        max-width: 54px !important;
+        box-sizing: border-box !important;
         background: linear-gradient(180deg, #0b1a2a 0%, #061321 100%) !important;
         border: 1px solid rgba(255,255,255,0.08) !important;
         border-radius: 999px !important;
         box-shadow: 0 18px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04) inset !important;
+        overflow: visible !important;
         transition:
           left 260ms cubic-bezier(0.22, 1, 0.36, 1),
           right 260ms cubic-bezier(0.22, 1, 0.36, 1),
