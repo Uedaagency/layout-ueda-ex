@@ -150,75 +150,116 @@
         background: #ffffff !important;
       }
 
-      /* ===== Floating launcher (popup mode) ===== */
+      /* ===== Floating launcher (popup mode) — AI orb ===== */
       #${LAUNCHER_ID} {
         position: fixed !important;
         right: 24px !important;
         bottom: 24px !important;
-        width: 56px !important;
-        height: 56px !important;
+        width: 60px !important;
+        height: 60px !important;
         border-radius: 999px !important;
         cursor: grab !important;
         z-index: 2147483647 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        background: transparent !important;
-        border: 1.5px solid rgba(0,159,227,0.55) !important;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.28) !important;
+        background:
+          radial-gradient(circle at 30% 30%, rgba(255,255,255,0.28), rgba(255,255,255,0.05) 55%, rgba(0,159,227,0.10) 100%),
+          rgba(10,25,45,0.28) !important;
+        -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+        backdrop-filter: blur(14px) saturate(160%) !important;
+        border: 1px solid rgba(255,255,255,0.35) !important;
+        box-shadow:
+          0 8px 28px rgba(0,0,0,0.35),
+          inset 0 1px 0 rgba(255,255,255,0.55),
+          inset 0 -6px 14px rgba(0,159,227,0.18) !important;
         padding: 0 !important;
         transition: transform 200ms ease, border-color 200ms ease !important;
         user-select: none !important;
         touch-action: none !important;
-        animation: tsLauncherIdlePulse 2.4s ease-out infinite !important;
+        overflow: hidden !important;
+        isolation: isolate !important;
+      }
+      #${LAUNCHER_ID}::before,
+      #${LAUNCHER_ID}::after {
+        content: "" !important;
+        position: absolute !important;
+        inset: -2px !important;
+        border-radius: 999px !important;
+        pointer-events: none !important;
+        z-index: 0 !important;
+        background:
+          conic-gradient(from 0deg,
+            rgba(0,159,227,0) 0deg,
+            rgba(0,159,227,0.55) 60deg,
+            rgba(120,220,255,0.85) 120deg,
+            rgba(0,159,227,0.55) 180deg,
+            rgba(0,159,227,0) 240deg,
+            rgba(0,159,227,0) 360deg);
+        -webkit-mask: radial-gradient(circle, transparent 55%, #000 58%, #000 72%, transparent 75%) !important;
+                mask: radial-gradient(circle, transparent 55%, #000 58%, #000 72%, transparent 75%) !important;
+        animation: tsOrbSpin 6s linear infinite !important;
+        opacity: 0.9 !important;
+      }
+      #${LAUNCHER_ID}::after {
+        -webkit-mask: radial-gradient(circle, transparent 72%, #000 76%, #000 88%, transparent 92%) !important;
+                mask: radial-gradient(circle, transparent 72%, #000 76%, #000 88%, transparent 92%) !important;
+        animation: tsOrbSpin 9s linear infinite reverse !important;
+        opacity: 0.55 !important;
       }
       #${LAUNCHER_ID}:hover {
         transform: scale(1.06) !important;
-        border-color: var(--ts-brand-primary, #009FE3) !important;
-        background: transparent !important;
+        border-color: rgba(255,255,255,0.55) !important;
       }
       #${LAUNCHER_ID}.ts-launcher-dragging {
         cursor: grabbing !important;
         transition: none !important;
-        animation: none !important;
       }
       #${LAUNCHER_ID} img {
-        width: 46px !important;
-        height: 46px !important;
+        position: relative !important;
+        z-index: 2 !important;
+        width: 30px !important;
+        height: 30px !important;
         object-fit: contain !important;
         pointer-events: none !important;
         border-radius: 999px !important;
         opacity: 1 !important;
-        filter: none !important;
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)) !important;
         background: transparent !important;
+      }
+      #${LAUNCHER_ID} .ts-orb-wave {
+        position: absolute !important;
+        inset: 8px !important;
+        border-radius: 999px !important;
+        pointer-events: none !important;
+        z-index: 1 !important;
+        background:
+          radial-gradient(ellipse 80% 30% at 50% 45%, rgba(120,220,255,0.55), transparent 70%),
+          radial-gradient(ellipse 60% 20% at 50% 60%, rgba(0,159,227,0.45), transparent 70%);
+        filter: blur(2px) !important;
+        animation: tsOrbBreathe 3.2s ease-in-out infinite !important;
+        mix-blend-mode: screen !important;
       }
       #${LAUNCHER_ID}.ts-launcher-active {
-        background: transparent !important;
-        border-color: var(--ts-brand-primary, #009FE3) !important;
-        animation: tsLauncherWaves 1.8s ease-out infinite !important;
+        border-color: rgba(120,220,255,0.7) !important;
       }
-      #${LAUNCHER_ID}.ts-launcher-active img {
-        opacity: 1 !important;
-        filter: none !important;
-        background: transparent !important;
+      #${LAUNCHER_ID}.ts-launcher-active::before { animation-duration: 3s !important; }
+      #${LAUNCHER_ID}.ts-launcher-active::after  { animation-duration: 4.5s !important; }
+      @keyframes tsOrbSpin {
+        to { transform: rotate(360deg); }
       }
-      @keyframes tsLauncherIdlePulse {
-        0%   { box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 0 rgba(0,159,227,0.35), 0 0 0 0 rgba(0,159,227,0.18); }
-        70%  { box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 12px rgba(0,159,227,0), 0 0 0 22px rgba(0,159,227,0); }
-        100% { box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 0 rgba(0,159,227,0), 0 0 0 0 rgba(0,159,227,0); }
-      }
-      @keyframes tsLauncherWaves {
-        0%   { box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0.55), 0 0 0 0 rgba(0,159,227,0.35); }
-        70%  { box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 14px rgba(0,159,227,0), 0 0 0 26px rgba(0,159,227,0); }
-        100% { box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0), 0 0 0 0 rgba(0,159,227,0); }
+      @keyframes tsOrbBreathe {
+        0%, 100% { transform: translateY(0) scaleY(1);   opacity: 0.75; }
+        50%      { transform: translateY(-2px) scaleY(1.35); opacity: 1; }
       }
       #${LAUNCHER_ID}.ts-launcher-recording {
         animation: tsLauncherPulse 1.2s infinite !important;
       }
       @keyframes tsLauncherPulse {
-        0%,100% { box-shadow: 0 12px 32px rgba(239,68,68,0.45); }
-        50%     { box-shadow: 0 12px 32px rgba(239,68,68,0.9); }
+        0%,100% { box-shadow: 0 12px 32px rgba(239,68,68,0.45), inset 0 1px 0 rgba(255,255,255,0.55); }
+        50%     { box-shadow: 0 12px 32px rgba(239,68,68,0.9),  inset 0 1px 0 rgba(255,255,255,0.55); }
       }
+
       /* Hard-hide the legacy prompts submenu rail — shortcuts open via popup now */
       #${SUBMENU_ID} { display: none !important; }
       #${LAUNCHER_ID} .ts-launcher-dot {
