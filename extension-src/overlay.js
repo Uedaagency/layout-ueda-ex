@@ -116,11 +116,11 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        background: rgba(255, 255, 255, 0.06) !important;
+        background: #ffffff !important;
         backdrop-filter: blur(10px) !important;
         -webkit-backdrop-filter: blur(10px) !important;
-        border: 1px solid var(--ts-primary-border-soft) !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+        border: 3px solid #0f2a42 !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0.0) !important;
         padding: 0 !important;
         transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease !important;
         user-select: none !important;
@@ -128,8 +128,8 @@
       }
       #${LAUNCHER_ID}:hover {
         transform: scale(1.06) !important;
-        border-color: var(--ts-primary-border) !important;
-        box-shadow: var(--ts-primary-glow-strong) !important;
+        border-color: var(--ts-brand-primary) !important;
+        box-shadow: 0 12px 40px rgba(0,159,227,0.45) !important;
       }
       #${LAUNCHER_ID}.ts-launcher-dragging {
         cursor: grabbing !important;
@@ -140,9 +140,9 @@
         height: 38px !important;
         object-fit: contain !important;
         pointer-events: none !important;
-        border-radius: 8px !important;
+        border-radius: 0 !important;
         opacity: 1 !important;
-        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35)) !important;
+        filter: none !important;
       }
       #${LAUNCHER_ID}.ts-launcher-active {
         background: var(--ts-primary-gradient) !important;
