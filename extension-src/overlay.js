@@ -2309,6 +2309,34 @@
     return ok;
   }
 
+  function readFileAsDataUrlForIframe(file) {
+    return new Promise((resolve, reject) => {
+      try {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("Falha ao ler " + (file && file.name ? file.name : "arquivo")));
+        reader.readAsDataURL(file);
+      } catch (err) { reject(err); }
+    });
+  }
+
+  async function serializeFilesForIframe(files) {
+    const arr = Array.from(files || []).filter(Boolean);
+    const serialized = [];
+    for (const file of arr) {
+      const dataUrl = await readFileAsDataUrlForIframe(file);
+      serialized.push({
+        __tsFileDataUrl: true,
+        name: file.name || "image.png",
+        type: file.type || "application/octet-stream",
+        size: file.size || 0,
+        lastModified: file.lastModified || Date.now(),
+        dataUrl,
+      });
+    }
+    return serialized;
+  }
+
 
   // Inject File[] into Lovable's native composer so they travel with the next send.
   // Strategy (in order): native <input type="file">, paste event, drop event.
