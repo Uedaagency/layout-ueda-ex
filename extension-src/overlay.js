@@ -177,9 +177,10 @@
         transition: transform 200ms ease, border-color 200ms ease !important;
         user-select: none !important;
         touch-action: none !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         isolation: isolate !important;
       }
+
       #${LAUNCHER_ID}::before,
       #${LAUNCHER_ID}::after {
         content: "" !important;
@@ -264,8 +265,10 @@
       #${SUBMENU_ID} { display: none !important; }
       #${LAUNCHER_ID} .ts-launcher-dot {
         position: absolute !important;
-        top: 4px !important;
-        right: 4px !important;
+        top: -4px !important;
+        right: -4px !important;
+        z-index: 5 !important;
+
         min-width: 16px !important;
         height: 16px !important;
         padding: 0 4px !important;
@@ -2206,7 +2209,9 @@
   // must route through this single function. It NEVER falls back to Lovable's
   // own send — that would drop the extension's uploaded files[] from the payload.
   function handlePopupNativeSend() {
+    if (overlayFeaturesDisabled) { tsDebug("[TS Popup] disabled — bypass"); return false; }
     tsDebug("[TS Popup] handlePopupNativeSend entered");
+
     const composer = findNativeComposer();
     const text = composer ? readComposerText(composer).trim() : "";
     const hasText = text.length > 0;
@@ -2300,8 +2305,10 @@
   // Intercept Enter on the native composer in popup mode.
   document.addEventListener("keydown", (e) => {
     if (currentLayoutMode !== "popup") return;
+    if (overlayFeaturesDisabled) return;
     if (window.__tsBypassNativeSend) return;
     if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+
     const target = e.target;
     if (!target || !(target.tagName === "TEXTAREA" || (target.getAttribute && target.getAttribute("contenteditable") === "true"))) return;
     if (target.closest && (target.closest(`#${ROOT_ID}`) || target.closest(`#${MENU_ID}`) || target.closest(`#${SUBMENU_ID}`))) return;
@@ -2316,8 +2323,10 @@
   // Intercept form submit in popup mode.
   document.addEventListener("submit", (e) => {
     if (currentLayoutMode !== "popup") return;
+    if (overlayFeaturesDisabled) return;
     if (window.__tsBypassNativeSend) return;
     const form = e.target;
+
     if (!form || !form.contains) return;
     const composer = findNativeComposer();
     if (!composer || !form.contains(composer)) return;
@@ -2410,8 +2419,9 @@
 
 
   function isPopupNativeModeActive() {
-    return currentLayoutMode === "popup";
+    return currentLayoutMode === "popup" && !overlayFeaturesDisabled;
   }
+
 
   // Direct-bound interceptors (capture-phase) on the actual native buttons,
   // re-applied whenever DOM changes. This wins over Lovable's own handlers,
