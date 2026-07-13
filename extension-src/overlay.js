@@ -2320,6 +2320,7 @@
       ["pointerdown","mousedown","click","keydown"].forEach((t) => {
         send.addEventListener(t, (ev) => {
           if (!isPopupNativeModeActive()) return;
+          if (window.__tsBypassNativeSend) return; // let Lovable handle it (files attached)
           if (t === "keydown" && ev.key !== "Enter" && ev.key !== " ") return;
           ev.preventDefault();
           ev.stopPropagation();
