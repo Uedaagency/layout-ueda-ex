@@ -72,6 +72,28 @@ const OBFUSCATE_OPTS = {
   target: 'browser',
 };
 
+// Safe profile for files that inject functions into other pages. No string
+// hoisting, no control flow flattening, no dead code — the injected function
+// body must be self-contained after Function.prototype.toString().
+const LIGHT_OBFUSCATE_OPTS = {
+  compact: true,
+  controlFlowFlattening: false,
+  deadCodeInjection: false,
+  debugProtection: false,
+  disableConsoleOutput: false,
+  identifierNamesGenerator: 'hexadecimal',
+  log: false,
+  numbersToExpressions: false,
+  renameGlobals: false,
+  selfDefending: false,
+  simplify: true,
+  splitStrings: false,
+  stringArray: false,
+  transformObjectKeys: false,
+  unicodeEscapeSequence: false,
+  target: 'browser',
+};
+
 function walk(dir) {
   const out = [];
   for (const name of readdirSync(dir)) {
