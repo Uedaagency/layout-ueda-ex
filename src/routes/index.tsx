@@ -513,9 +513,9 @@ function FloatingPreview() {
                   color: active ? BRAND_DARK : "#0a2540",
                 }}
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base"
-                  style={{ background: active ? BRAND : "rgba(255,255,255,.6)", color: active ? "#fff" : "inherit" }}>
-                  {it.icon}
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                  style={{ background: active ? BRAND : "rgba(255,255,255,.6)", color: active ? "#fff" : "#0a2540" }}>
+                  <it.icon size={16} strokeWidth={1.75} />
                 </span>
                 {showNames && (
                   <span className="truncate text-sm font-medium">{it.label}</span>
