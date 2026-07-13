@@ -1975,11 +1975,96 @@
   }
 
 
-  function attachFilesViaIframe(files) {
-    showStatus("📎 Enviando " + files.length + " arquivo(s)…");
-    postToIframe({ type: "TS_POPUP_ACTION", action: "attach", files });
-    try { addPopupAttachments(files); } catch (_) {}
+  // Inject File[] into Lovable's native composer so they travel with the next send.
+  // Strategy (in order): native <input type="file">, paste event, drop event.
+  function injectFilesIntoNativeComposer(files) {
+    const arr = Array.from(files || []).filter(Boolean);
+    if (!arr.length) return false;
+    let dt;
+    try {
+      dt = new DataTransfer();
+      arr.forEach((f) => { try { dt.items.add(f); } catch (_) {} });
+    } catch (_) { dt = null; }
+    if (!dt || !dt.files || !dt.files.length) return false;
+
+    // 1) Try any file input inside the composer wrap.
+    try {
+      const wrap = findNativeComposerWrap() || document.body;
+      const inputs = wrap.querySelectorAll('input[type="file"]');
+      for (const inp of inputs) {
+        if (inp.closest && inp.closest(`#${ROOT_ID}`)) continue;
+        try {
+          inp.files = dt.files;
+          inp.dispatchEvent(new Event("input", { bubbles: true }));
+          inp.dispatchEvent(new Event("change", { bubbles: true }));
+          tsDebug("[TS Popup] Files injected into native file input:", arr.map(f => f.name));
+          return true;
+        } catch (_) { /* try next */ }
+      }
+    } catch (_) {}
+
+    // 2) Paste event on composer (rich editors accept clipboardData.files).
+    try {
+      const composer = findNativeComposer();
+      if (composer) {
+        const evt = new ClipboardEvent("paste", { bubbles: true, cancelable: true, clipboardData: dt });
+        // Some browsers ignore the clipboardData constructor arg — set it defensively.
+        try { Object.defineProperty(evt, "clipboardData", { value: dt }); } catch (_) {}
+        composer.focus();
+        const dispatched = composer.dispatchEvent(evt);
+        if (dispatched) { tsDebug("[TS Popup] Files pasted into composer"); return true; }
+      }
+    } catch (_) {}
+
+    // 3) Drop event on composer wrap.
+    try {
+      const wrap = findNativeComposerWrap() || findNativeComposer();
+      if (wrap) {
+        const rect = wrap.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        ["dragenter","dragover","drop"].forEach((t) => {
+          const evt = new DragEvent(t, { bubbles: true, cancelable: true, dataTransfer: dt, clientX: cx, clientY: cy });
+          try { Object.defineProperty(evt, "dataTransfer", { value: dt }); } catch (_) {}
+          wrap.dispatchEvent(evt);
+        });
+        tsDebug("[TS Popup] Files dropped on composer wrap");
+        return true;
+      }
+    } catch (_) {}
+
+    return false;
   }
+
+  function attachFilesViaIframe(files) {
+    const arr = Array.from(files || []).filter(Boolean);
+    if (!arr.length) return;
+    // Preferred path in popup mode: hand files straight to Lovable's composer so
+    // they're bundled with the user's text on the next native send.
+    if (currentLayoutMode === "popup") {
+      const injected = injectFilesIntoNativeComposer(arr);
+      if (injected) {
+        showStatus("📎 " + arr.length + " arquivo(s) anexado(s) ao chat", "success");
+        try { addPopupAttachments(arr); } catch (_) {}
+        // Mark local previews as ready immediately — Lovable owns the upload now.
+        try {
+          popupAttachments.forEach((a) => {
+            if (arr.some((f) => f.name === a.name && f.size === a.size)) {
+              a.uploading = false; a.uploadFailed = false; a.ready = true;
+              a.__lovableOwned = true;
+            }
+          });
+          renderPopupAttachments();
+        } catch (_) {}
+        return;
+      }
+    }
+    // Fallback: sidepanel iframe flow (uploads via extension backend).
+    showStatus("📎 Enviando " + arr.length + " arquivo(s)…");
+    postToIframe({ type: "TS_POPUP_ACTION", action: "attach", files: arr });
+    try { addPopupAttachments(arr); } catch (_) {}
+  }
+
 
   // ===== Unified popup native send handler =====
   // All paths (Enter on textarea, click on native send button, form submit)
