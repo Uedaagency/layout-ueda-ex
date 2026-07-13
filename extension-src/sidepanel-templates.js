@@ -28,7 +28,7 @@ const SP_TEMPLATES = [
     prompt: "Identifique falhas, erros de lógica e bugs no código fornecido. Forneça a correção exata para cada problema encontrado, acompanhada de uma explicação clara sobre a causa raiz e a solução aplicada, garantindo que o código funcione perfeitamente e sem erros."
   },
   {
-    icon: "♻️",
+    icon: SP_MINI_ICON('<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 21H3v-5"/>'),
     label: "Refatorar",
     prompt: "Analise a estrutura do código e proponha uma refatoração completa para torná-lo mais limpo, modular e seguindo os princípios SOLID e Clean Code. Reduza a complexidade ciclomática e melhore a legibilidade e manutenibilidade sem alterar a funcionalidade original."
   },
