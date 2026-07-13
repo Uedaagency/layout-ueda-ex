@@ -18,6 +18,7 @@
   const STYLE_ID = "ts-community-overlay-style";
   const LAUNCHER_ID = "ts-floating-launcher";
   const MENU_ID = "ts-floating-action-menu";
+  const LABELS_ID = "ts-floating-labels-panel";
   const SUBMENU_ID = "ts-floating-submenu";
   const NOTIF_PANEL_ID = "ts-notification-panel";
   const COMPOSER_WRAP_CLASS = "ts-native-composer-wrap";
@@ -337,38 +338,80 @@
           opacity 200ms ease !important;
       }
       #${MENU_ID} .ts-fab-label, #${SUBMENU_ID} .ts-fab-label {
-        position: absolute !important;
-        top: 50% !important;
-        transform: translateY(-50%) translateX(6px) !important;
-        padding: 8px 14px !important;
+        display: none !important;
+      }
+      /* Rail collapse chevron (top of the dark rail) */
+      #${MENU_ID} .ts-rail-toggle {
+        width: 28px !important; height: 28px !important;
+        min-width: 28px !important; max-width: 28px !important;
         border-radius: 999px !important;
+        background: rgba(255,255,255,0.06) !important;
+        border: 1px solid rgba(255,255,255,0.10) !important;
+        color: #fff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        margin-bottom: 2px !important;
+      }
+      #${MENU_ID} .ts-rail-toggle svg { width: 14px !important; height: 14px !important; stroke: #fff !important; }
+
+      /* White companion labels panel */
+      #${LABELS_ID} {
+        position: fixed !important;
+        z-index: 2147483647 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        padding: 12px 10px !important;
         background: #ffffff !important;
-        color: #0f2a42 !important;
         border: 1px solid rgba(15,42,66,0.08) !important;
-        line-height: 1.2 !important;
-        font-weight: 700 !important;
-        font-size: 12px !important;
-        letter-spacing: 0.01em !important;
-        box-shadow: 0 10px 24px rgba(0,0,0,0.18) !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        transition: opacity 160ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1) !important;
-      }
-      #${MENU_ID}[data-align="right"] .ts-fab-label,
-      #${SUBMENU_ID}[data-align="right"] .ts-fab-label {
-        right: calc(100% + 14px) !important;
-        left: auto !important;
-      }
-      #${MENU_ID}[data-align="left"] .ts-fab-label,
-      #${SUBMENU_ID}[data-align="left"] .ts-fab-label {
-        left: calc(100% + 14px) !important;
-        right: auto !important;
-      }
-      #${MENU_ID} .ts-fab-item:hover .ts-fab-label,
-      #${SUBMENU_ID} .ts-fab-item:hover .ts-fab-label {
+        border-radius: 18px !important;
+        box-shadow: 0 20px 45px rgba(0,0,0,0.18) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        min-width: 190px !important;
+        max-width: 220px !important;
+        box-sizing: border-box !important;
         opacity: 1 !important;
-        transform: translateY(-50%) translateX(0) !important;
+        transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22,1,0.36,1) !important;
       }
+      #${LABELS_ID}.ts-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(6px) !important; }
+      #${LABELS_ID} .ts-label-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        background: transparent !important;
+        border: none !important;
+        color: #0f2a42 !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        text-align: left !important;
+        width: 100% !important;
+        transition: background 140ms ease, color 140ms ease !important;
+        font-family: inherit !important;
+      }
+      #${LABELS_ID} .ts-label-row .ts-label-ico {
+        width: 18px !important; height: 18px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #0f2a42 !important;
+        flex: 0 0 18px !important;
+      }
+      #${LABELS_ID} .ts-label-row .ts-label-ico svg { width: 16px !important; height: 16px !important; stroke: currentColor !important; }
+      #${LABELS_ID} .ts-label-row:hover,
+      #${LABELS_ID} .ts-label-row.ts-active {
+        background: #0f2a42 !important;
+        color: #ffffff !important;
+      }
+      #${LABELS_ID} .ts-label-row:hover .ts-label-ico,
+      #${LABELS_ID} .ts-label-row.ts-active .ts-label-ico { color: #ffffff !important; }
+
+
       #${MENU_ID}[data-align="left"] .ts-fab-item,
       #${SUBMENU_ID}[data-align="left"] .ts-fab-item { flex-direction: row !important; }
       #${MENU_ID}[data-align="right"] .ts-fab-item,
@@ -1186,6 +1229,8 @@
     isFloatingMenuOpen = false;
     const m = document.getElementById(MENU_ID);
     if (m) { m.classList.remove("ts-floating-menu-open"); m.remove(); }
+    const lp = document.getElementById(LABELS_ID);
+    if (lp) lp.remove();
     closeSubmenu();
     const b = document.getElementById(LAUNCHER_ID);
     if (b) { b.classList.remove("ts-launcher-active"); b.classList.remove("ts-floating-menu-open"); }
@@ -1194,6 +1239,7 @@
   function closeSubmenu() {
     const s = document.getElementById(SUBMENU_ID); if (s) s.remove();
   }
+
 
   function toggleMenu() {
     console.log("[TS Popup] Launcher clicked");
@@ -1331,26 +1377,53 @@
 
   let hoverSubmenuTimer = null;
 
+  function positionLabelsPanel(panel) {
+    const menu = document.getElementById(MENU_ID);
+    if (!menu) return;
+    const anchor = getMenuAnchor();
+    const mRect = menu.getBoundingClientRect();
+    const gap = 12;
+    ["left","right","top","bottom"].forEach((p) => panel.style.setProperty(p, "auto", "important"));
+    if (anchor.hAlign === "right") {
+      panel.style.setProperty("right", Math.max(8, window.innerWidth - mRect.left + gap) + "px", "important");
+    } else {
+      panel.style.setProperty("left", Math.max(8, mRect.right + gap) + "px", "important");
+    }
+    panel.style.setProperty("top", Math.max(8, mRect.top) + "px", "important");
+  }
+
   function openMenu() {
     const existing = document.getElementById(MENU_ID);
     if (existing) existing.remove();
+    const existingLbl = document.getElementById(LABELS_ID);
+    if (existingLbl) existingLbl.remove();
     closeSubmenu();
 
     const menu = document.createElement("div");
     menu.id = MENU_ID;
     menu.setAttribute("role", "menu");
-    menu.innerHTML = MAIN_ITEMS.map((it, i) => {
-      const chev = it.isPrompts ? `<span class="ts-fab-chevron">${LICON.chevronL}</span>` : "";
+    const toggleBtn = `<button type="button" class="ts-rail-toggle" data-rail-toggle aria-label="Alternar rótulos">${LICON.chevronR}</button>`;
+    menu.innerHTML = toggleBtn + MAIN_ITEMS.map((it, i) => {
       const badge = it.action === "notifications" ? `<span class="ts-fab-badge" data-ts-notif-badge style="display:none">0</span>` : "";
       return `<button type="button" class="ts-fab-item ${it.isPrompts ? "ts-fab-prompts" : ""}" data-action="${it.action}" style="animation-delay:${i * 40}ms">` +
         `<span class="ts-fab-circle">${it.icon}${badge}</span>` +
-        `<span class="ts-fab-label">${escapeHtml(it.label)}</span>` +
-        chev +
       `</button>`;
     }).join("");
     document.body.appendChild(menu);
     menu.classList.add("ts-floating-menu-open");
     positionMenuRelativeToLauncher(menu);
+
+    // Companion white labels panel
+    const labels = document.createElement("div");
+    labels.id = LABELS_ID;
+    labels.innerHTML = MAIN_ITEMS.map((it) => (
+      `<button type="button" class="ts-label-row" data-action="${it.action}">` +
+        `<span class="ts-label-ico">${it.icon}</span>` +
+        `<span class="ts-label-text">${escapeHtml(it.label)}</span>` +
+      `</button>`
+    )).join("");
+    document.body.appendChild(labels);
+    positionLabelsPanel(labels);
 
     isFloatingMenuOpen = true;
     const b = document.getElementById(LAUNCHER_ID);
@@ -1359,35 +1432,56 @@
     console.log("[TS Popup] Menu open:", isFloatingMenuOpen);
     checkUnreadNotifications();
 
-    menu.querySelectorAll("[data-action]").forEach((btn) => {
+    const highlightRow = (action, on) => {
+      const row = labels.querySelector(`.ts-label-row[data-action="${action}"]`);
+      if (row) row.classList.toggle("ts-active", !!on);
+    };
+
+    // Rail toggle collapses/expands the labels panel
+    const toggleEl = menu.querySelector("[data-rail-toggle]");
+    if (toggleEl) {
+      toggleEl.addEventListener("click", (e) => {
+        e.preventDefault(); e.stopPropagation();
+        labels.classList.toggle("ts-hidden");
+      });
+    }
+
+    const bindAction = (btn) => {
       const action = btn.getAttribute("data-action");
       btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         handleMenuAction(action);
       });
-      if (action === "prompts") {
-        btn.addEventListener("mouseenter", () => {
+      btn.addEventListener("mouseenter", () => {
+        highlightRow(action, true);
+        if (action === "prompts") {
           if (hoverSubmenuTimer) clearTimeout(hoverSubmenuTimer);
           if (!document.getElementById(SUBMENU_ID)) openPromptsSubmenu();
-        });
-        btn.addEventListener("mouseleave", () => {
+        } else {
+          closeSubmenu();
+        }
+      });
+      btn.addEventListener("mouseleave", () => {
+        highlightRow(action, false);
+        if (action === "prompts") {
           if (hoverSubmenuTimer) clearTimeout(hoverSubmenuTimer);
           hoverSubmenuTimer = setTimeout(() => {
             const sub = document.getElementById(SUBMENU_ID);
             if (sub && !sub.matches(":hover")) closeSubmenu();
           }, 220);
-        });
-      } else {
-        btn.addEventListener("mouseenter", () => { closeSubmenu(); });
-      }
-    });
+        }
+      });
+    };
+    menu.querySelectorAll(".ts-fab-item[data-action]").forEach(bindAction);
+    labels.querySelectorAll(".ts-label-row[data-action]").forEach(bindAction);
 
     const onDocClick = (ev) => {
       const launcher = document.getElementById(LAUNCHER_ID);
       const sub = document.getElementById(SUBMENU_ID);
       const m = document.getElementById(MENU_ID);
+      const lp = document.getElementById(LABELS_ID);
       if (m && m.contains(ev.target)) return;
+      if (lp && lp.contains(ev.target)) return;
       if (sub && sub.contains(ev.target)) return;
       if (launcher && launcher.contains(ev.target)) return;
       closeMenu();
@@ -1398,12 +1492,14 @@
     const reposition = () => {
       if (!isFloatingMenuOpen) return;
       positionMenuRelativeToLauncher(menu);
+      positionLabelsPanel(labels);
       const s = document.getElementById(SUBMENU_ID);
       if (s) positionSubmenuRelativeToMenu(s);
     };
     window.addEventListener("resize", reposition);
     window.addEventListener("scroll", reposition, true);
   }
+
 
   function safePromptIcon(raw) {
     const s = String(raw || "").trim();
