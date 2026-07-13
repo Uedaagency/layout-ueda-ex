@@ -659,7 +659,7 @@ const logoutBtn = e.target.closest('.sp-logout-btn');
 function setExtensionLayoutMode(mode) {
   const isPopup = (mode === 'popup' || mode === 'floating');
   const stored = isPopup ? 'popup' : 'sidebar';
-  try { chrome.storage.local.set({ tsExtensionLayoutMode: stored, tsModeChoicePending: false }); } catch(_) {}
+  try { chrome.storage.local.set({ tsExtensionLayoutMode: stored, tsModeChoicePending: false, sidebarCollapsed: false }); } catch(_) {}
   try {
     window.parent && window.parent.postMessage({ type: 'TS_OVERLAY_SET_LAYOUT', mode: stored }, '*');
   } catch(_) {}
