@@ -49,6 +49,7 @@
         "content-templates.js",
         "content.js",
         "overlay.js",
+        "help-modal.js",
         "update-check.js"
       ],
       "css": [
