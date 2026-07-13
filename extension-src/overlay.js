@@ -1438,8 +1438,14 @@
     const toggleBtn = `<button type="button" class="ts-rail-toggle" data-rail-toggle aria-label="Alternar rótulos">${LICON.chevronR}</button>`;
     menu.innerHTML = toggleBtn + MAIN_ITEMS.map((it, i) => {
       const badge = it.action === "notifications" ? `<span class="ts-fab-badge" data-ts-notif-badge style="display:none">0</span>` : "";
-      return `<button type="button" class="ts-fab-item ${it.isPrompts ? "ts-fab-prompts" : ""}" data-action="${it.action}" style="animation-delay:${i * 40}ms">` +
-        `<span class="ts-fab-circle">${it.icon}${badge}</span>` +
+      let icon = it.icon;
+      let extraClass = "";
+      if (it.dynamic === "toggle") {
+        if (overlayFeaturesDisabled) { icon = LICON.powerOff; extraClass = " ts-fab-toggle-off"; }
+        else { icon = LICON.powerOn; extraClass = " ts-fab-toggle-on"; }
+      }
+      return `<button type="button" class="ts-fab-item ${it.isPrompts ? "ts-fab-prompts" : ""}${extraClass}" data-action="${it.action}" style="animation-delay:${i * 40}ms">` +
+        `<span class="ts-fab-circle">${icon}${badge}</span>` +
       `</button>`;
     }).join("");
     document.body.appendChild(menu);
@@ -1451,9 +1457,14 @@
     labels.id = LABELS_ID;
     labels.innerHTML = MAIN_ITEMS.map((it) => {
       let lbl = it.label;
-      if (it.dynamic === "toggle") lbl = overlayFeaturesDisabled ? "Ativar aqui" : "Desativar aqui";
-      return `<button type="button" class="ts-label-row" data-action="${it.action}">` +
-        `<span class="ts-label-ico">${it.icon}</span>` +
+      let icon = it.icon;
+      let extraClass = "";
+      if (it.dynamic === "toggle") {
+        if (overlayFeaturesDisabled) { lbl = "Extensão OFF"; icon = LICON.powerOff; extraClass = " ts-label-toggle-off"; }
+        else { lbl = "Extensão ON"; icon = LICON.powerOn; extraClass = " ts-label-toggle-on"; }
+      }
+      return `<button type="button" class="ts-label-row${extraClass}" data-action="${it.action}">` +
+        `<span class="ts-label-ico">${icon}</span>` +
         `<span class="ts-label-text">${escapeHtml(lbl)}</span>` +
       `</button>`;
     }).join("");
