@@ -793,12 +793,32 @@
       clearPopupSelectedSkill();
     }
 
+    // Always re-sync sidebar visibility so switching back from popup/floating
+    // to sidebar mode restores the fixed panel (body padding + iframe width).
     try {
       chrome.storage.local.get({ sidebarCollapsed: false }, (r) => {
-        setSidebarCollapsed(Boolean(r && r.sidebarCollapsed));
+        const collapsed = currentLayoutMode === "sidebar" && !flowModalActive
+          ? Boolean(r && r.sidebarCollapsed)
+          : Boolean(r && r.sidebarCollapsed);
+        setSidebarCollapsed(collapsed);
       });
     } catch (_) {
       setSidebarCollapsed(false);
+    }
+
+    // Force a reflow / iframe refresh when returning to sidebar mode — some
+    // browsers keep the previous 1×1 popup-mode layout cached on the iframe
+    // until its size changes again.
+    if (!isPopup && !flowModalActive) {
+      try {
+        const iframe = document.getElementById(IFRAME_ID);
+        if (iframe) {
+          // Toggle a harmless style to force a layout recalculation.
+          const prev = iframe.style.opacity;
+          iframe.style.opacity = "0.999";
+          requestAnimationFrame(() => { iframe.style.opacity = prev || ""; });
+        }
+      } catch (_) {}
     }
   }
 
