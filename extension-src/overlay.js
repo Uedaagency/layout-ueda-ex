@@ -908,10 +908,14 @@
     btn.id = LAUNCHER_ID;
     btn.type = "button";
     btn.title = ((window.tsBrandName && window.tsBrandName()) || "Painel Lovable") + " — clique para abrir o menu (arraste para mover)";
+    const wave = document.createElement("span");
+    wave.className = "ts-orb-wave";
+    btn.appendChild(wave);
     const img = document.createElement("img");
     img.src = getLogoUrl();
     img.alt = "TS";
     btn.appendChild(img);
+
     const dot = document.createElement("span");
     dot.className = "ts-launcher-dot";
     dot.setAttribute("data-ts-launcher-dot", "");
