@@ -107,9 +107,9 @@
         align-items: center !important;
         justify-content: center !important;
         padding: 24px !important;
-        background: rgba(12, 18, 28, 0.36) !important;
-        backdrop-filter: blur(9px) saturate(105%) !important;
-        -webkit-backdrop-filter: blur(9px) saturate(105%) !important;
+        background: rgba(12, 18, 28, 0.22) !important;
+        backdrop-filter: blur(14px) saturate(130%) !important;
+        -webkit-backdrop-filter: blur(14px) saturate(130%) !important;
         box-shadow: none !important;
         transform: none !important;
         pointer-events: auto !important;
@@ -130,8 +130,8 @@
         pointer-events: auto !important;
         border-radius: 26px !important;
         overflow: hidden !important;
-        background: transparent !important;
-        box-shadow: 0 34px 90px rgba(8, 16, 30, 0.30), 0 0 0 1px rgba(255,255,255,0.42) !important;
+        background: rgba(255,255,255,0.72) !important;
+        box-shadow: 0 34px 90px rgba(8, 16, 30, 0.35), inset 0 1px 0 rgba(255,255,255,0.65), 0 0 0 1px rgba(255,255,255,0.5) !important;
         transform: translateY(0) scale(1) !important;
         animation: tsModalPop 260ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
       }
@@ -163,36 +163,37 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        background: #ffffff !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
-        border: 3px solid #0f2a42 !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0.0) !important;
+        background: transparent !important;
+        border: 1.5px solid rgba(0,159,227,0.55) !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.28) !important;
         padding: 0 !important;
-        transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease !important;
+        transition: transform 200ms ease, border-color 200ms ease !important;
         user-select: none !important;
         touch-action: none !important;
+        animation: tsLauncherIdlePulse 2.4s ease-out infinite !important;
       }
       #${LAUNCHER_ID}:hover {
         transform: scale(1.06) !important;
-        border-color: var(--ts-brand-primary) !important;
-        box-shadow: 0 12px 40px rgba(0,159,227,0.45) !important;
+        border-color: var(--ts-brand-primary, #009FE3) !important;
+        background: transparent !important;
       }
       #${LAUNCHER_ID}.ts-launcher-dragging {
         cursor: grabbing !important;
         transition: none !important;
+        animation: none !important;
       }
       #${LAUNCHER_ID} img {
-        width: 38px !important;
-        height: 38px !important;
+        width: 46px !important;
+        height: 46px !important;
         object-fit: contain !important;
         pointer-events: none !important;
-        border-radius: 0 !important;
+        border-radius: 999px !important;
         opacity: 1 !important;
         filter: none !important;
+        background: transparent !important;
       }
       #${LAUNCHER_ID}.ts-launcher-active {
-        background: #ffffff !important;
+        background: transparent !important;
         border-color: var(--ts-brand-primary, #009FE3) !important;
         animation: tsLauncherWaves 1.8s ease-out infinite !important;
       }
@@ -200,6 +201,11 @@
         opacity: 1 !important;
         filter: none !important;
         background: transparent !important;
+      }
+      @keyframes tsLauncherIdlePulse {
+        0%   { box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 0 rgba(0,159,227,0.35), 0 0 0 0 rgba(0,159,227,0.18); }
+        70%  { box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 12px rgba(0,159,227,0), 0 0 0 22px rgba(0,159,227,0); }
+        100% { box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 0 rgba(0,159,227,0), 0 0 0 0 rgba(0,159,227,0); }
       }
       @keyframes tsLauncherWaves {
         0%   { box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 0 rgba(0,159,227,0.55), 0 0 0 0 rgba(0,159,227,0.35); }
@@ -279,7 +285,7 @@
         box-shadow: 0 0 6px #fff !important;
       }
 
-      /* ===== FAB-style vertical menu (transparent items) ===== */
+      /* ===== FAB-style vertical menu (glass) ===== */
       #${MENU_ID}, #${SUBMENU_ID} {
         position: fixed !important;
         z-index: 2147483647 !important;
@@ -295,11 +301,13 @@
         min-width: 54px !important;
         max-width: 54px !important;
         box-sizing: border-box !important;
-        background: linear-gradient(180deg, #0b1a2a 0%, #061321 100%) !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
+        background: linear-gradient(180deg, rgba(15,30,50,0.55) 0%, rgba(8,18,32,0.45) 100%) !important;
+        backdrop-filter: blur(18px) saturate(140%) !important;
+        border: 1px solid rgba(255,255,255,0.16) !important;
         border-radius: 999px !important;
-        box-shadow: 0 18px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04) inset !important;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 0 1px rgba(255,255,255,0.04) !important;
         overflow: visible !important;
+        transform: translateZ(0) !important;
         transition:
           left 260ms cubic-bezier(0.22, 1, 0.36, 1),
           right 260ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -307,6 +315,16 @@
           bottom 260ms cubic-bezier(0.22, 1, 0.36, 1),
           transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
           opacity 220ms ease !important;
+      }
+      #${MENU_ID}::before, #${SUBMENU_ID}::before {
+        content: "" !important;
+        position: absolute !important;
+        top: 4px !important; left: 8px !important; right: 8px !important;
+        height: 40% !important;
+        border-radius: 999px !important;
+        background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.28), rgba(255,255,255,0) 70%) !important;
+        pointer-events: none !important;
+        opacity: 0.9 !important;
       }
       #${MENU_ID}[data-align="right"], #${SUBMENU_ID}[data-align="right"] { align-items: center !important; }
       #${MENU_ID}[data-align="left"],  #${SUBMENU_ID}[data-align="left"]  { align-items: center !important; }
@@ -469,6 +487,29 @@
       #${MENU_ID} .ts-fab-item.ts-fab-prompts .ts-fab-circle {
         background: linear-gradient(180deg,#0f2a42,#08192b) !important;
       }
+      /* Toggle extensão ON/OFF */
+      #${MENU_ID} .ts-fab-item.ts-fab-toggle-on .ts-fab-circle {
+        background: linear-gradient(180deg,#22c55e,#16a34a) !important;
+        border-color: rgba(255,255,255,0.35) !important;
+        box-shadow: 0 6px 18px rgba(34,197,94,0.45), inset 0 1px 0 rgba(255,255,255,0.25) !important;
+        color: #ffffff !important;
+      }
+      #${MENU_ID} .ts-fab-item.ts-fab-toggle-off .ts-fab-circle {
+        background: linear-gradient(180deg,#ef4444,#dc2626) !important;
+        border-color: rgba(255,255,255,0.35) !important;
+        box-shadow: 0 6px 18px rgba(239,68,68,0.45), inset 0 1px 0 rgba(255,255,255,0.25) !important;
+        color: #ffffff !important;
+      }
+      #${MENU_ID} .ts-fab-item.ts-fab-toggle-on:hover .ts-fab-circle {
+        background: linear-gradient(180deg,#16a34a,#15803d) !important;
+        color: #ffffff !important;
+      }
+      #${MENU_ID} .ts-fab-item.ts-fab-toggle-off:hover .ts-fab-circle {
+        background: linear-gradient(180deg,#dc2626,#b91c1c) !important;
+        color: #ffffff !important;
+      }
+      #${LABELS_ID} .ts-label-row.ts-label-toggle-on .ts-label-ico { color: #16a34a !important; }
+      #${LABELS_ID} .ts-label-row.ts-label-toggle-off .ts-label-ico { color: #dc2626 !important; }
       #${MENU_ID} .ts-fab-chevron {
         opacity: 0.85 !important;
         display: inline-flex !important;
@@ -1329,6 +1370,8 @@
     chevronL:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
     user:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
     history:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>',
+    powerOn:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>',
+    powerOff:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>',
   };
 
   const MAIN_ITEMS = [
@@ -1341,7 +1384,7 @@
     { action: "watermark",    icon: LICON.badgeX,     label: "Remover marca d'água" },
     { action: "history",      icon: LICON.history,    label: "Histórico" },
     { action: "sidebar",      icon: LICON.panelRight, label: "Painel lateral" },
-    { action: "toggle-here",  icon: LICON.badgeX,     label: "Desativar aqui", dynamic: "toggle" },
+    { action: "toggle-here",  icon: LICON.powerOn,    label: "Extensão ON", dynamic: "toggle" },
   ];
 
   // Determine which side of the preview the launcher is on, to align the
@@ -1436,8 +1479,14 @@
     const toggleBtn = `<button type="button" class="ts-rail-toggle" data-rail-toggle aria-label="Alternar rótulos">${LICON.chevronR}</button>`;
     menu.innerHTML = toggleBtn + MAIN_ITEMS.map((it, i) => {
       const badge = it.action === "notifications" ? `<span class="ts-fab-badge" data-ts-notif-badge style="display:none">0</span>` : "";
-      return `<button type="button" class="ts-fab-item ${it.isPrompts ? "ts-fab-prompts" : ""}" data-action="${it.action}" style="animation-delay:${i * 40}ms">` +
-        `<span class="ts-fab-circle">${it.icon}${badge}</span>` +
+      let icon = it.icon;
+      let extraClass = "";
+      if (it.dynamic === "toggle") {
+        if (overlayFeaturesDisabled) { icon = LICON.powerOff; extraClass = " ts-fab-toggle-off"; }
+        else { icon = LICON.powerOn; extraClass = " ts-fab-toggle-on"; }
+      }
+      return `<button type="button" class="ts-fab-item ${it.isPrompts ? "ts-fab-prompts" : ""}${extraClass}" data-action="${it.action}" style="animation-delay:${i * 40}ms">` +
+        `<span class="ts-fab-circle">${icon}${badge}</span>` +
       `</button>`;
     }).join("");
     document.body.appendChild(menu);
@@ -1449,9 +1498,14 @@
     labels.id = LABELS_ID;
     labels.innerHTML = MAIN_ITEMS.map((it) => {
       let lbl = it.label;
-      if (it.dynamic === "toggle") lbl = overlayFeaturesDisabled ? "Ativar aqui" : "Desativar aqui";
-      return `<button type="button" class="ts-label-row" data-action="${it.action}">` +
-        `<span class="ts-label-ico">${it.icon}</span>` +
+      let icon = it.icon;
+      let extraClass = "";
+      if (it.dynamic === "toggle") {
+        if (overlayFeaturesDisabled) { lbl = "Extensão OFF"; icon = LICON.powerOff; extraClass = " ts-label-toggle-off"; }
+        else { lbl = "Extensão ON"; icon = LICON.powerOn; extraClass = " ts-label-toggle-on"; }
+      }
+      return `<button type="button" class="ts-label-row${extraClass}" data-action="${it.action}">` +
+        `<span class="ts-label-ico">${icon}</span>` +
         `<span class="ts-label-text">${escapeHtml(lbl)}</span>` +
       `</button>`;
     }).join("");
