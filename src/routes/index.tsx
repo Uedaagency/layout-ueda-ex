@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import sidepanelCss from "../extension-assets/sidepanel.css?raw";
+
+export type ViewMode = "entry" | "choice" | "fixed" | "floating";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
