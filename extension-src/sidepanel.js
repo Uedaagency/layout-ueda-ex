@@ -713,6 +713,25 @@ function tsReplyPopup(ok, message) {
   try { window.parent && window.parent.postMessage({ type: 'TS_POPUP_RESULT', ok: !!ok, message: message || '' }, '*'); } catch(_) {}
 }
 
+async function tsHydratePopupFiles(files) {
+  var hydrated = [];
+  var list = Array.isArray(files) ? files : [];
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    if (item && item.__tsFileDataUrl && item.dataUrl) {
+      var resp = await fetch(item.dataUrl);
+      var blob = await resp.blob();
+      hydrated.push(new File([blob], item.name || 'image.png', {
+        type: item.type || blob.type || 'application/octet-stream',
+        lastModified: item.lastModified || Date.now()
+      }));
+    } else if (item instanceof File || item instanceof Blob) {
+      hydrated.push(item);
+    }
+  }
+  return hydrated;
+}
+
 window.addEventListener('message', async (event) => {
   const data = event && event.data;
   if (!data || data.type !== 'TS_POPUP_ACTION') return;
@@ -759,7 +778,7 @@ window.addEventListener('message', async (event) => {
         tsReplyPopup(true, '✓ Prompt enviado');
       } else { tsReplyPopup(false, 'handleSend indisponível'); }
     } else if (action === 'attach') {
-      const files = Array.isArray(data.files) ? data.files : [];
+      const files = await tsHydratePopupFiles(data.files);
       if (!files.length) { tsReplyPopup(false, 'Nenhum arquivo'); return; }
       if (typeof spHandleFilesAttach === 'function') {
         await spHandleFilesAttach(files);
@@ -794,6 +813,10 @@ window.addEventListener('message', async (event) => {
       const btn = document.getElementById('sp-download-project');
       if (btn) { btn.click(); tsReplyPopup(true, '⏳ Baixando arquivos'); }
       else tsReplyPopup(false, 'Download indisponível');
+    } else if (action === 'new-project') {
+      const btn = document.getElementById('sp-create-project');
+      if (btn) { btn.click(); tsReplyPopup(true, '🆕 Criando projeto'); }
+      else tsReplyPopup(false, 'Criar projeto indisponível');
     }
   } catch(err) {
     tsReplyPopup(false, '✗ ' + (err && err.message ? err.message : String(err)));
