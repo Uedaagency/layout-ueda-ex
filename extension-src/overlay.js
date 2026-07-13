@@ -1229,6 +1229,8 @@
     isFloatingMenuOpen = false;
     const m = document.getElementById(MENU_ID);
     if (m) { m.classList.remove("ts-floating-menu-open"); m.remove(); }
+    const lp = document.getElementById(LABELS_ID);
+    if (lp) lp.remove();
     closeSubmenu();
     const b = document.getElementById(LAUNCHER_ID);
     if (b) { b.classList.remove("ts-launcher-active"); b.classList.remove("ts-floating-menu-open"); }
@@ -1237,6 +1239,7 @@
   function closeSubmenu() {
     const s = document.getElementById(SUBMENU_ID); if (s) s.remove();
   }
+
 
   function toggleMenu() {
     console.log("[TS Popup] Launcher clicked");
