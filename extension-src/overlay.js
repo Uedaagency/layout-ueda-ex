@@ -2620,7 +2620,7 @@
     } else if (data.type === "TS_OVERLAY_TEMPLATES") {
       if (Array.isArray(data.templates)) {
         promptTemplates = data.templates.slice(0, 24);
-        if (document.getElementById(SUBMENU_ID)) openPromptsSubmenu();
+        if (false && document.getElementById(SUBMENU_ID)) openPromptsSubmenu();
       }
     } else if (data.type === "TS_POPUP_RESULT") {
       showStatus(data.message || (data.ok ? "✓ Concluído" : "✗ Falha"), data.ok ? "success" : "error");
