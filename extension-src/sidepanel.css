@@ -709,7 +709,7 @@ body { animation: sp-fade-in 0.4s ease-out; }
   padding:0;
   border:none;
   background:transparent;
-  color:#111111;
+  color:var(--ql-text-primary);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -750,24 +750,24 @@ body { animation: sp-fade-in 0.4s ease-out; }
   color:#ff3b5c;
 }
 
-.sp-help-btn{
-  color:#2a2a2a;
-}
-
-.sp-notif-btn{
-  color:#2a2a2a;
+.sp-help-btn,
+.sp-notif-btn,
+.sp-layout-btn,
+.sp-sound-btn{
+  color:var(--ql-text-primary);
 }
 
 .sp-theme-icon{
   width:16px;
   height:16px;
-  color:#2a2a2a;
+  color:var(--ql-text-primary);
   display:block;
 }
 
 body:not(.sp-light) .sp-theme-icon{
   color:var(--ts-brand-primary);
 }
+
 
 .sp-theme-btn{
   margin-left:0 !important;
