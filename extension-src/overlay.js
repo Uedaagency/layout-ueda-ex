@@ -1767,6 +1767,12 @@
       }
       #${MODAL_ID} .ts-modal-tile:hover { background:#eef2ff; border-color:#c7d2fe; transform:translateY(-1px); }
       #${MODAL_ID} .ts-modal-tile .ts-modal-tile-ico { font-size:20px; }
+      #${MODAL_ID} .ts-shortcuts-grid { grid-template-columns:repeat(4, 1fr); gap:8px; }
+      #${MODAL_ID} .ts-shortcut-tile { padding:12px 6px; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; gap:8px; }
+      #${MODAL_ID} .ts-shortcut-tile:hover { background:#f8fafc; border-color:#94a3b8; }
+      #${MODAL_ID} .ts-shortcut-ico { width:22px; height:22px; color:#334155; display:inline-flex; align-items:center; justify-content:center; }
+      #${MODAL_ID} .ts-shortcut-ico svg { width:100%; height:100%; }
+      #${MODAL_ID} .ts-shortcut-label { font-size:11px; font-weight:500; color:#334155; line-height:1.25; }
       #${MODAL_ID} .ts-modal-list { display:flex; flex-direction:column; gap:8px; }
       #${MODAL_ID} .ts-modal-item { padding:12px 14px; border-radius:12px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; color:#0f172a; }
       #${MODAL_ID} .ts-modal-item .ts-modal-item-sub { color:#64748b; font-size:11px; margin-top:4px; }
