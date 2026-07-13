@@ -1801,10 +1801,10 @@
   function openShortcutsModal() {
     const list = (promptTemplates && promptTemplates.length) ? promptTemplates : [];
     const body = list.length
-      ? `<div class="ts-modal-grid">` + list.map((t, i) =>
-          `<button type="button" class="ts-modal-tile" data-prompt-index="${i}" title="${escapeHtml(t.label)}">
-             <span class="ts-modal-tile-ico">${escapeHtml(safePromptIcon(t.icon))}</span>
-             <span>${escapeHtml(t.label)}</span>
+      ? `<div class="ts-modal-grid ts-shortcuts-grid">` + list.map((t, i) =>
+          `<button type="button" class="ts-modal-tile ts-shortcut-tile" data-prompt-index="${i}" title="${escapeHtml(t.label)}">
+             <span class="ts-shortcut-ico">${promptSvgFor(t)}</span>
+             <span class="ts-shortcut-label">${escapeHtml(t.label)}</span>
            </button>`
         ).join("") + `</div>`
       : `<p style="margin:0;color:#64748b;font-size:13px">Carregando atalhos…</p>`;
