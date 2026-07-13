@@ -2527,6 +2527,10 @@
       if (area !== "local") return;
       if (changes.tsExtensionLayoutMode) applyLayoutMode(changes.tsExtensionLayoutMode.newValue || "popup");
       if (changes.sidebarCollapsed) applyCollapsedState(Boolean(changes.sidebarCollapsed.newValue));
+      if (changes.tsExtensionDisabledHosts) {
+        overlayFeaturesDisabled = tsIsHostDisabled(changes.tsExtensionDisabledHosts.newValue);
+        refreshOverlayMode();
+      }
       if (changes.ql_license_valid || changes.tsModeChoicePending) {
         try {
           chrome.storage.local.get({ ql_license_valid: false, tsModeChoicePending: false }, (r) => {
