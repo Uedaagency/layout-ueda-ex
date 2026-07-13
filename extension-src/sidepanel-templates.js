@@ -33,7 +33,7 @@ const SP_TEMPLATES = [
     prompt: "Analise a estrutura do código e proponha uma refatoração completa para torná-lo mais limpo, modular e seguindo os princípios SOLID e Clean Code. Reduza a complexidade ciclomática e melhore a legibilidade e manutenibilidade sem alterar a funcionalidade original."
   },
   {
-    icon: "🎨",
+    icon: SP_MINI_ICON('<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1"/><circle cx="12" cy="7" r="1"/><circle cx="15.5" cy="10" r="1"/><path d="M9 15c1 1.5 5 1.5 6 0"/>'),
     label: "Melhorar UI",
     prompt: `Você é um Diretor de Arte e Desenvolvedor Frontend de elite, reconhecido por criar interfaces premiadas (nível Awwwards/Apple). Seu objetivo é transformar a página atual em uma experiência visual "Premium", focada em sofisticação, minimalismo moderno e fluidez absoluta.
 
