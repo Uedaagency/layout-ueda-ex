@@ -904,6 +904,22 @@ if (notifClose) {
     document.getElementById('sp-validate-btn').addEventListener('click', validateLicense);
   }
 
+  function showModeChooser() {
+    const body = document.getElementById('sp-body');
+    if (!body) { showMainUI(); return; }
+    body.innerHTML = spTemplateModeChooser();
+    body.querySelectorAll('.sp-mode-card').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode') || 'sidebar';
+        try { setExtensionLayoutMode(mode); } catch(_) {}
+        showMainUI();
+      });
+    });
+    const skip = document.getElementById('sp-mode-skip');
+    if (skip) skip.addEventListener('click', () => showMainUI());
+  }
+
+
   async function validateLicense() {
     const input = document.getElementById('sp-license-input');
     const log = document.getElementById('sp-license-log');
