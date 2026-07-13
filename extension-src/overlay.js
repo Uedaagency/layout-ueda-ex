@@ -2320,8 +2320,10 @@
   // Intercept form submit in popup mode.
   document.addEventListener("submit", (e) => {
     if (currentLayoutMode !== "popup") return;
+    if (overlayFeaturesDisabled) return;
     if (window.__tsBypassNativeSend) return;
     const form = e.target;
+
     if (!form || !form.contains) return;
     const composer = findNativeComposer();
     if (!composer || !form.contains(composer)) return;
