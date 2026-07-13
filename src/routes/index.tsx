@@ -226,22 +226,75 @@ export function buildSrcDoc(cfg: Config, mode: ViewMode = "fixed") {
     </div>
   `;
 
-  const footer = `
-    <div class="sp-footer">
-      <div class="sp-footer-badge">${escapeHtml(cfg.footerText)}</div>
+  const licenseGate = `
+    <div class="sp-license-gate" style="display:flex">
+      <div class="sp-login-logo" style="width:64px;height:64px;border-radius:16px;background:var(--ts-brand-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:26px;margin-bottom:14px">U</div>
+      <p class="sp-gate-title">Bem vindo a <span>${escapeHtml(cfg.brandName)}</span></p>
+      <p class="sp-gate-desc">Insira sua chave de licença para desbloquear.</p>
+      <input class="sp-input" placeholder="UEDAEX-XXXXXXXXXXXXXX" spellcheck="false">
+      <button class="sp-btn-primary">Validar Licença</button>
+      <div class="sp-gate-actions">
+        <a class="sp-glass-card" href="#" onclick="return false">
+          <div class="sp-glass-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+          </div>
+          <div class="sp-glass-content">
+            <span class="sp-glass-title">Obter suporte</span>
+            <span class="sp-glass-sub">Fale com nossa equipe e tire suas dúvidas.</span>
+          </div>
+          <div class="sp-glass-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </a>
+      </div>
     </div>
   `;
+
+  const choiceScreen = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;gap:18px;min-height:520px;text-align:center">
+      <div style="width:64px;height:64px;border-radius:16px;background:var(--ts-brand-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:26px">U</div>
+      <div>
+        <h2 style="margin:0 0 6px;font-size:18px;font-weight:700">Escolha o modo de exibição</h2>
+        <p style="margin:0;font-size:13px;color:var(--ql-text-muted, #6b7280)">Como você prefere usar a extensão?</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;margin-top:8px">
+        <button style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;border:2px solid var(--ts-brand-primary);background:var(--ts-brand-primary-soft);cursor:pointer;text-align:left;color:inherit">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--ts-brand-primary);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="10" rx="1"/></svg>
+          </div>
+          <div>
+            <div style="font-weight:600;font-size:14px">Painel Fixo</div>
+            <div style="font-size:12px;opacity:.75">Ancorado ao lado do navegador</div>
+          </div>
+        </button>
+        <button style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;border:2px solid rgba(0,0,0,.08);background:transparent;cursor:pointer;text-align:left;color:inherit">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#c84cff,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          </div>
+          <div>
+            <div style="font-weight:600;font-size:14px">Widget Flutuante</div>
+            <div style="font-size:12px;opacity:.75">Botão sobre a página, arrastável</div>
+          </div>
+        </button>
+      </div>
+      <button style="margin-top:10px;padding:10px 24px;border-radius:8px;background:var(--ts-brand-primary);color:#fff;border:0;font-weight:600;cursor:pointer">Continuar</button>
+    </div>
+  `;
+
+  let body = "";
+  if (mode === "entry") body = `${header}<div class="sp-body">${licenseGate}</div>${footer}`;
+  else if (mode === "choice") body = `${header}<div class="sp-body">${choiceScreen}</div>${footer}`;
+  else body = `${header}<div class="sp-body">${mainUI}</div>${footer}`;
 
   return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
 <style>${sidepanelCss}</style>
 <style>${override}</style>
 </head>
 <body class="${cfg.theme === "light" ? "sp-light" : ""}">
-${header}
-<div class="sp-body">${mainUI}</div>
-${footer}
+${body}
 </body></html>`;
 }
+
 
 function escapeHtml(s: string) {
   return String(s)
