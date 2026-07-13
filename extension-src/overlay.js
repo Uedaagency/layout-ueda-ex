@@ -285,7 +285,7 @@
         box-shadow: 0 0 6px #fff !important;
       }
 
-      /* ===== FAB-style vertical menu (transparent items) ===== */
+      /* ===== FAB-style vertical menu (glass) ===== */
       #${MENU_ID}, #${SUBMENU_ID} {
         position: fixed !important;
         z-index: 2147483647 !important;
@@ -301,11 +301,13 @@
         min-width: 54px !important;
         max-width: 54px !important;
         box-sizing: border-box !important;
-        background: linear-gradient(180deg, #0b1a2a 0%, #061321 100%) !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
+        background: linear-gradient(180deg, rgba(15,30,50,0.55) 0%, rgba(8,18,32,0.45) 100%) !important;
+        backdrop-filter: blur(18px) saturate(140%) !important;
+        border: 1px solid rgba(255,255,255,0.16) !important;
         border-radius: 999px !important;
-        box-shadow: 0 18px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04) inset !important;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 0 1px rgba(255,255,255,0.04) !important;
         overflow: visible !important;
+        position: fixed !important;
         transition:
           left 260ms cubic-bezier(0.22, 1, 0.36, 1),
           right 260ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -313,6 +315,16 @@
           bottom 260ms cubic-bezier(0.22, 1, 0.36, 1),
           transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
           opacity 220ms ease !important;
+      }
+      #${MENU_ID}::before, #${SUBMENU_ID}::before {
+        content: "" !important;
+        position: absolute !important;
+        top: 4px !important; left: 8px !important; right: 8px !important;
+        height: 40% !important;
+        border-radius: 999px !important;
+        background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.28), rgba(255,255,255,0) 70%) !important;
+        pointer-events: none !important;
+        opacity: 0.9 !important;
       }
       #${MENU_ID}[data-align="right"], #${SUBMENU_ID}[data-align="right"] { align-items: center !important; }
       #${MENU_ID}[data-align="left"],  #${SUBMENU_ID}[data-align="left"]  { align-items: center !important; }
