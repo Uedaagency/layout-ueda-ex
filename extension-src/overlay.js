@@ -276,9 +276,11 @@
         opacity: 1 !important;
         visibility: visible !important;
         margin: 0 !important;
-        padding: 0 !important;
-        background: transparent !important;
-        border: none !important;
+        padding: 10px 8px !important;
+        background: linear-gradient(180deg, #0b1a2a 0%, #061321 100%) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 999px !important;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04) inset !important;
         transition:
           left 260ms cubic-bezier(0.22, 1, 0.36, 1),
           right 260ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -287,8 +289,8 @@
           transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
           opacity 220ms ease !important;
       }
-      #${MENU_ID}[data-align="right"], #${SUBMENU_ID}[data-align="right"] { align-items: flex-end !important; }
-      #${MENU_ID}[data-align="left"],  #${SUBMENU_ID}[data-align="left"]  { align-items: flex-start !important; }
+      #${MENU_ID}[data-align="right"], #${SUBMENU_ID}[data-align="right"] { align-items: center !important; }
+      #${MENU_ID}[data-align="left"],  #${SUBMENU_ID}[data-align="left"]  { align-items: center !important; }
       #${MENU_ID}.ts-floating-menu-open, #${SUBMENU_ID} {
         display: flex !important;
       }
