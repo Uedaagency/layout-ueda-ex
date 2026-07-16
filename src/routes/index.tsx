@@ -161,25 +161,47 @@ function ExtensionPreview() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            fetch("/ueda-ex.zip")
-              .then((res) => res.blob())
-              .then((blob) => {
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(blob);
-                a.download = "ueda-ex.zip";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(a.href);
-              });
-          }}
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#009FE3] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#009FE3]/30 hover:bg-[#0088c2]"
-        >
-          ⬇ Baixar extensão (.zip)
-        </button>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              fetch("/ueda-ex.zip")
+                .then((res) => res.blob())
+                .then((blob) => {
+                  const a = document.createElement("a");
+                  a.href = URL.createObjectURL(blob);
+                  a.download = "ueda-ex.zip";
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(a.href);
+                });
+            }}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#009FE3] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#009FE3]/30 hover:bg-[#0088c2]"
+          >
+            ⬇ Baixar extensão (.zip)
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              fetch("/ueda-ex-source.zip")
+                .then((res) => res.blob())
+                .then((blob) => {
+                  const a = document.createElement("a");
+                  a.href = URL.createObjectURL(blob);
+                  a.download = "ueda-ex-source.zip";
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(a.href);
+                });
+            }}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-500 bg-slate-700 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-600"
+          >
+            ⬇ Baixar código-fonte (sem ofuscação)
+          </button>
+        </div>
+
       </div>
     </div>
   );
