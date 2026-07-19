@@ -286,6 +286,30 @@
         display: block !important;
         animation: tsLauncherDotPulse 1.6s infinite !important;
       }
+      #${LAUNCHER_ID} .ts-launcher-update-dot {
+        position: absolute !important;
+        bottom: -2px !important;
+        left: -2px !important;
+        z-index: 5 !important;
+        width: 14px !important;
+        height: 14px !important;
+        border-radius: 999px !important;
+        background: #22c55e !important;
+        box-shadow: 0 0 0 2px rgba(15,23,42,0.9), 0 2px 6px rgba(34,197,94,0.6) !important;
+        pointer-events: none !important;
+        display: none !important;
+      }
+      #${LAUNCHER_ID}.ts-has-update .ts-launcher-update-dot {
+        display: block !important;
+        animation: tsLauncherDotPulse 1.6s infinite !important;
+      }
+      #${MENU_ID} .ts-fab-badge-dot {
+        min-width: 12px !important;
+        width: 12px !important;
+        height: 12px !important;
+        padding: 0 !important;
+        background: #22c55e !important;
+      }
       @keyframes tsLauncherDotPulse {
         0%,100% { transform: scale(1); }
         50%     { transform: scale(1.15); }
@@ -1011,6 +1035,12 @@
     dot.setAttribute("data-ts-launcher-dot", "");
     dot.textContent = "";
     btn.appendChild(dot);
+
+    const updateDot = document.createElement("span");
+    updateDot.className = "ts-launcher-update-dot";
+    updateDot.setAttribute("data-ts-launcher-update-dot", "");
+    btn.appendChild(updateDot);
+
     document.body.appendChild(btn);
     try {
       chrome.storage.local.get({ tsFloatingLauncherPosition: null }, (r) => {
@@ -1669,7 +1699,7 @@
     menu.setAttribute("role", "menu");
     const toggleBtn = `<button type="button" class="ts-rail-toggle" data-rail-toggle aria-label="Alternar rótulos">${LICON.chevronR}</button>`;
     menu.innerHTML = toggleBtn + MAIN_ITEMS.map((it, i) => {
-      const badge = it.action === "notifications" ? `<span class="ts-fab-badge" data-ts-notif-badge style="display:none">0</span>` : "";
+      const badge = it.action === "notifications" ? `<span class="ts-fab-badge" data-ts-notif-badge style="display:none">0</span>` : (it.action === "update" ? `<span class="ts-fab-badge ts-fab-badge-dot" data-ts-update-badge style="display:none"></span>` : "");
       let icon = it.icon;
       let extraClass = "";
       if (it.dynamic === "toggle") {
@@ -1709,6 +1739,7 @@
 
     console.log("[TS Popup] Menu open:", isFloatingMenuOpen);
     checkUnreadNotifications();
+    refreshUpdateBadge();
 
     const highlightRow = (action, on) => {
       const row = labels.querySelector(`.ts-label-row[data-action="${action}"]`);
@@ -1858,6 +1889,30 @@
       });
     });
   }
+
+  // Reads the flag written by update-check.js (lp_update_available) and
+  // toggles the visual indicator: a pulsing dot on the closed launcher and
+  // a small badge on the "Atualizar" menu item. Non-blocking — just a signal.
+  function refreshUpdateBadge() {
+    try {
+      chrome.storage.local.get(["lp_update_available"], (state) => {
+        const available = !!(state && state.lp_update_available);
+        document.querySelectorAll("[data-ts-update-badge]").forEach((badge) => {
+          badge.style.display = available ? "block" : "none";
+        });
+        const launcher = document.getElementById(LAUNCHER_ID);
+        if (launcher) launcher.classList.toggle("ts-has-update", available);
+      });
+    } catch (_) {}
+  }
+
+  try {
+    if (chrome && chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === "local" && changes.lp_update_available) refreshUpdateBadge();
+      });
+    }
+  } catch (_) {}
 
   async function checkUnreadNotifications() {
     try {
@@ -3141,6 +3196,12 @@
   try {
     setTimeout(() => { checkUnreadNotifications(); }, 1500);
     setInterval(() => { checkUnreadNotifications(); }, 30000);
+  } catch (_) {}
+
+  // ===================== Update badge polling =====================
+  try {
+    setTimeout(() => { refreshUpdateBadge(); }, 1500);
+    setInterval(() => { refreshUpdateBadge(); }, 20000);
   } catch (_) {}
 
 

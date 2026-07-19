@@ -147,6 +147,7 @@
       chrome.storage.local.set({
         lp_update_blocked: false,
         lp_force_update: false,
+        lp_update_available: false,
         lp_latest_version: null,
         lp_download_url: null,
         lp_update_title: null,
@@ -177,12 +178,14 @@
       return;
     }
     const installed = getInstalledVersion();
+    const available = compareVersions(installed, data.version) < 0;
     const blocked = !!data.force_update && compareVersions(installed, data.version) !== 0;
     try {
       chrome.storage.local.set({
         lp_latest_version: data.version,
         lp_force_update: !!data.force_update,
         lp_update_blocked: blocked,
+        lp_update_available: available,
         lp_download_url: data.download_url,
         lp_update_title: data.title,
         lp_update_changelog: data.changelog,
