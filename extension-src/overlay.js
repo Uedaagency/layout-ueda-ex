@@ -3198,6 +3198,12 @@
     setInterval(() => { checkUnreadNotifications(); }, 30000);
   } catch (_) {}
 
+  // ===================== Update badge polling =====================
+  try {
+    setTimeout(() => { refreshUpdateBadge(); }, 1500);
+    setInterval(() => { refreshUpdateBadge(); }, 20000);
+  } catch (_) {}
+
 
   // ===================== Voice (popup native sink) =====================
   let recognition = null;
