@@ -1035,6 +1035,12 @@
     dot.setAttribute("data-ts-launcher-dot", "");
     dot.textContent = "";
     btn.appendChild(dot);
+
+    const updateDot = document.createElement("span");
+    updateDot.className = "ts-launcher-update-dot";
+    updateDot.setAttribute("data-ts-launcher-update-dot", "");
+    btn.appendChild(updateDot);
+
     document.body.appendChild(btn);
     try {
       chrome.storage.local.get({ tsFloatingLauncherPosition: null }, (r) => {
