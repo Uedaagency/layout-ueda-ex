@@ -286,6 +286,30 @@
         display: block !important;
         animation: tsLauncherDotPulse 1.6s infinite !important;
       }
+      #${LAUNCHER_ID} .ts-launcher-update-dot {
+        position: absolute !important;
+        bottom: -2px !important;
+        left: -2px !important;
+        z-index: 5 !important;
+        width: 14px !important;
+        height: 14px !important;
+        border-radius: 999px !important;
+        background: #22c55e !important;
+        box-shadow: 0 0 0 2px rgba(15,23,42,0.9), 0 2px 6px rgba(34,197,94,0.6) !important;
+        pointer-events: none !important;
+        display: none !important;
+      }
+      #${LAUNCHER_ID}.ts-has-update .ts-launcher-update-dot {
+        display: block !important;
+        animation: tsLauncherDotPulse 1.6s infinite !important;
+      }
+      #${MENU_ID} .ts-fab-badge-dot {
+        min-width: 12px !important;
+        width: 12px !important;
+        height: 12px !important;
+        padding: 0 !important;
+        background: #22c55e !important;
+      }
       @keyframes tsLauncherDotPulse {
         0%,100% { transform: scale(1); }
         50%     { transform: scale(1.15); }
