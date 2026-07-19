@@ -1575,6 +1575,7 @@
     
     { action: "sidebar",      icon: LICON.panelRight, label: "Painel lateral" },
     { action: "toggle-here",  icon: LICON.powerOn,    label: "Extensão ON", dynamic: "toggle" },
+    { action: "update",       icon: LICON.refresh,    label: "Atualizar" },
   ];
 
   // Determine which side of the preview the launcher is on, to align the
