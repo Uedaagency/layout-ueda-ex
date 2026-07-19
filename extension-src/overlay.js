@@ -1959,6 +1959,48 @@
       runIframeAction("new-project");
       showStatus("🆕 Criando novo projeto…");
       closeMenu();
+    } else if (action === "update") {
+      closeMenu();
+      showStatus("🔎 Verificando atualizações…");
+      const finish = (result) => {
+        if (!result || !result.ok) {
+          showStatus("✗ Não foi possível verificar agora. Tente novamente em instantes.", "error");
+          return;
+        }
+        if (result.hasUpdate) {
+          const changelogHtml = result.changelog
+            ? '<pre style="white-space:pre-wrap;margin:10px 0 0;padding:10px;border-radius:10px;background:#f1f5f9;color:#0f172a;font-size:12px;line-height:1.5;max-height:220px;overflow:auto">' +
+              String(result.changelog).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])) +
+              '</pre>'
+            : '';
+          openCenteredModal(
+            "Atualização disponível",
+            '<p style="margin:0;color:#334155;font-size:13px;line-height:1.55">' +
+              'Versão instalada: <b>' + (result.installedVersion || "-") + '</b><br>' +
+              'Nova versão: <b>' + (result.latestVersion || "-") + '</b>' +
+              (result.title ? '<br><br><b>' + String(result.title).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])) + '</b>' : '') +
+              '</p>' + changelogHtml +
+              '<div style="margin-top:14px"><button id="ts-update-download-btn" style="width:100%;padding:11px 14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00a8ff,#0078ff);color:#fff;font-weight:800;font-size:13px;cursor:pointer">Baixar atualização</button></div>'
+          );
+          const btn = document.getElementById("ts-update-download-btn");
+          if (btn) {
+            btn.addEventListener("click", () => {
+              try {
+                if (chrome && chrome.tabs && chrome.tabs.create) chrome.tabs.create({ url: result.downloadUrl, active: true });
+                else window.open(result.downloadUrl, "_blank", "noopener,noreferrer");
+              } catch (_) { window.open(result.downloadUrl, "_blank", "noopener,noreferrer"); }
+            });
+          }
+        } else {
+          showStatus("✓ Você já está na versão mais recente (" + (result.installedVersion || "-") + ")", "success");
+        }
+      };
+      try {
+        if (window.uedaForceUpdateCheck) window.uedaForceUpdateCheck(finish);
+        else finish({ ok: false });
+      } catch (_) {
+        finish({ ok: false });
+      }
     } else if (action === "toggle-here") {
       const host = tsCurrentHost();
       try {
