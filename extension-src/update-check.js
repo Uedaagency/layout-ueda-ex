@@ -103,7 +103,7 @@
     el.innerHTML = `
       <div class="lp-shell">
         <div class="lp-top">
-          <div class="lp-brand"><span class="lp-mark">↻</span><span>Sorax</span></div>
+          <div class="lp-brand"><span class="lp-mark">↻</span><span>UEDA</span></div>
           <span class="lp-status">Bloqueado</span>
         </div>
         <section class="lp-card" aria-live="polite">
