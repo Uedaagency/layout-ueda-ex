@@ -1699,7 +1699,7 @@
     menu.setAttribute("role", "menu");
     const toggleBtn = `<button type="button" class="ts-rail-toggle" data-rail-toggle aria-label="Alternar rótulos">${LICON.chevronR}</button>`;
     menu.innerHTML = toggleBtn + MAIN_ITEMS.map((it, i) => {
-      const badge = it.action === "notifications" ? `<span class="ts-fab-badge" data-ts-notif-badge style="display:none">0</span>` : "";
+      const badge = it.action === "notifications" ? `<span class="ts-fab-badge" data-ts-notif-badge style="display:none">0</span>` : (it.action === "update" ? `<span class="ts-fab-badge ts-fab-badge-dot" data-ts-update-badge style="display:none"></span>` : "");
       let icon = it.icon;
       let extraClass = "";
       if (it.dynamic === "toggle") {
