@@ -1890,6 +1890,30 @@
     });
   }
 
+  // Reads the flag written by update-check.js (lp_update_available) and
+  // toggles the visual indicator: a pulsing dot on the closed launcher and
+  // a small badge on the "Atualizar" menu item. Non-blocking — just a signal.
+  function refreshUpdateBadge() {
+    try {
+      chrome.storage.local.get(["lp_update_available"], (state) => {
+        const available = !!(state && state.lp_update_available);
+        document.querySelectorAll("[data-ts-update-badge]").forEach((badge) => {
+          badge.style.display = available ? "block" : "none";
+        });
+        const launcher = document.getElementById(LAUNCHER_ID);
+        if (launcher) launcher.classList.toggle("ts-has-update", available);
+      });
+    } catch (_) {}
+  }
+
+  try {
+    if (chrome && chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === "local" && changes.lp_update_available) refreshUpdateBadge();
+      });
+    }
+  } catch (_) {}
+
   async function checkUnreadNotifications() {
     try {
       const data = await fetchNotifications();
