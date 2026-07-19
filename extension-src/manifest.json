@@ -43,6 +43,7 @@
       "js": [
         "branding.config.js",
         "remote-branding.js",
+        "remote-config.js",
         "jszip.min.js",
         "hwFingerprint.js",
         "content-templates.js",
