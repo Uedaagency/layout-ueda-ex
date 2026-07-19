@@ -147,6 +147,7 @@
       chrome.storage.local.set({
         lp_update_blocked: false,
         lp_force_update: false,
+        lp_update_available: false,
         lp_latest_version: null,
         lp_download_url: null,
         lp_update_title: null,
