@@ -1,7 +1,7 @@
 // Update checker — blocks only the extension UI when a mandatory update is published.
 (function () {
-  const ENDPOINT = "https://extensalovable2.lovable.app/api/public/extension-version";
-  const DOWNLOAD_ENDPOINT = "https://extensalovable2.lovable.app/api/public/extension-download";
+  const ENDPOINT = "https://exlovable.uedaagency.com.br/api/public/extension-version";
+  const DOWNLOAD_ENDPOINT = "https://exlovable.uedaagency.com.br/api/public/extension-download";
   const SUPABASE_URL = "https://qpssaefptonzbpgcvtrq.supabase.co";
   const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwc3NhZWZwdG9uemJwZ2N2dHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY4NTUsImV4cCI6MjA5OTUyMjg1NX0.rZVreithJxc4w3T4W45zXTyATai3yjYennoa4nU9Uu8";
   const RELEASES_REST = SUPABASE_URL + "/rest/v1/extension_releases?select=version,title,changelog,force_update,distribution_type,external_url,zip_url,published_at&is_current=eq.true&order=published_at.desc&limit=1";
@@ -103,7 +103,7 @@
     el.innerHTML = `
       <div class="lp-shell">
         <div class="lp-top">
-          <div class="lp-brand"><span class="lp-mark">↻</span><span>Sorax</span></div>
+          <div class="lp-brand"><span class="lp-mark">↻</span><span>UEDA</span></div>
           <span class="lp-status">Bloqueado</span>
         </div>
         <section class="lp-card" aria-live="polite">
@@ -314,4 +314,35 @@
 
   window.addEventListener("focus", check);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+
+  // ---- Manual check (used by the "Atualizar" button in the floating menu) ----
+  try {
+    window.uedaForceUpdateCheck = function (callback) {
+      check()
+        .then(() => {
+          try {
+            chrome.storage.local.get(
+              ["lp_latest_version", "lp_download_url", "lp_update_title", "lp_update_changelog", "lp_force_update"],
+              (state) => {
+                const installed = getInstalledVersion();
+                const latest = (state && state.lp_latest_version) || null;
+                const hasUpdate = !!latest && compareVersions(installed, latest) < 0;
+                callback({
+                  ok: true,
+                  installedVersion: installed,
+                  latestVersion: latest,
+                  hasUpdate,
+                  downloadUrl: (state && state.lp_download_url) || DOWNLOAD_ENDPOINT,
+                  title: state && state.lp_update_title,
+                  changelog: state && state.lp_update_changelog,
+                });
+              }
+            );
+          } catch (_) {
+            callback({ ok: false, installedVersion: getInstalledVersion() });
+          }
+        })
+        .catch(() => callback({ ok: false, installedVersion: getInstalledVersion() }));
+    };
+  } catch (_) {}
 })();

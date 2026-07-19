@@ -18,8 +18,7 @@
     "https://lovable.dev/*",
     "https://lovable-api.com/*",
     "https://qpssaefptonzbpgcvtrq.supabase.co/*",
-    "https://extensalovable2.lovable.app/*",
-    "https://lovablemaxx.lovable.app/*"
+    "https://exlovable.uedaagency.com.br/*"
   ],
   "icons": {
     "16": "icons/icon16.png",
@@ -44,6 +43,7 @@
       "js": [
         "branding.config.js",
         "remote-branding.js",
+        "remote-config.js",
         "jszip.min.js",
         "hwFingerprint.js",
         "content-templates.js",
@@ -79,7 +79,8 @@
         "jszip.min.js",
         "hwFingerprint.js",
         "icons/*",
-        "remote-branding.js"
+        "remote-branding.js",
+        "remote-config.js"
       ],
       "matches": [
         "https://*.lovable.dev/*",

@@ -2555,7 +2555,7 @@ licenseKey = key;
         var sd = await new Promise(function(r){ chrome.storage.local.get(['lovable_token','lovable_token_global','lovable_projectId'], r); });
         var authToken = (sd.lovable_token || sd.lovable_token_global || '').replace(/^Bearer\s+/i,'');
         var projectId = sd.lovable_projectId || '';
-        if (!projectId) throw new Error('Abra uma página de projeto do Lovable SORAXiro.');
+        if (!projectId) throw new Error('Abra uma página de projeto do Lovable primeiro.');
 
         if (!authToken) {
           var cookieResponse = await new Promise(function(resolve) {

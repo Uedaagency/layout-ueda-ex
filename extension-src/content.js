@@ -2384,7 +2384,7 @@ function setupDownloadProject() {
       if (authToken.indexOf('Bearer ') === 0) authToken = authToken.slice(7);
 
       var projectId = storedProjectId;
-      if (!projectId) throw new Error('Abra uma pagina de projeto do Lovable SORAXiro.');
+      if (!projectId) throw new Error('Abra uma pagina de projeto do Lovable primeiro.');
       if (!authToken) {
         var cookieResponse = await new Promise(function(resolve) {
           chrome.runtime.sendMessage({ action: "readCookies" }, function(resp) { resolve(resp); });
