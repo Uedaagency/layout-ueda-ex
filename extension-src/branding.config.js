@@ -24,8 +24,8 @@
   window.__tsBrandingInstalled = true;
 
   var DEFAULTS = {
-    extensionName: "Sorax",
-    brandName: "Sorax",
+    extensionName: "UEDA",
+    brandName: "UEDA",
     primaryColor: "#FF6A00",
     whatsappLinks: {
       support: "https://wa.me/5561998239879",
