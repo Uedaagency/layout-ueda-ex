@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicRemoteConfigRouteImport } from './routes/api/public/remote-config'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRemoteConfigRoute = ApiPublicRemoteConfigRouteImport.update({
+  id: '/api/public/remote-config',
+  path: '/api/public/remote-config',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/remote-config': typeof ApiPublicRemoteConfigRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/remote-config': typeof ApiPublicRemoteConfigRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/remote-config': typeof ApiPublicRemoteConfigRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/public/remote-config'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/public/remote-config'
+  id: '__root__' | '/' | '/api/public/remote-config'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicRemoteConfigRoute: typeof ApiPublicRemoteConfigRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/remote-config': {
+      id: '/api/public/remote-config'
+      path: '/api/public/remote-config'
+      fullPath: '/api/public/remote-config'
+      preLoaderRoute: typeof ApiPublicRemoteConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicRemoteConfigRoute: ApiPublicRemoteConfigRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
