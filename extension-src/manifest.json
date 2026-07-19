@@ -79,7 +79,8 @@
         "jszip.min.js",
         "hwFingerprint.js",
         "icons/*",
-        "remote-branding.js"
+        "remote-branding.js",
+        "remote-config.js"
       ],
       "matches": [
         "https://*.lovable.dev/*",
