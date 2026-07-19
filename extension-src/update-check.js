@@ -314,4 +314,35 @@
 
   window.addEventListener("focus", check);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+
+  // ---- Manual check (used by the "Atualizar" button in the floating menu) ----
+  try {
+    window.uedaForceUpdateCheck = function (callback) {
+      check()
+        .then(() => {
+          try {
+            chrome.storage.local.get(
+              ["lp_latest_version", "lp_download_url", "lp_update_title", "lp_update_changelog", "lp_force_update"],
+              (state) => {
+                const installed = getInstalledVersion();
+                const latest = (state && state.lp_latest_version) || null;
+                const hasUpdate = !!latest && compareVersions(installed, latest) < 0;
+                callback({
+                  ok: true,
+                  installedVersion: installed,
+                  latestVersion: latest,
+                  hasUpdate,
+                  downloadUrl: (state && state.lp_download_url) || DOWNLOAD_ENDPOINT,
+                  title: state && state.lp_update_title,
+                  changelog: state && state.lp_update_changelog,
+                });
+              }
+            );
+          } catch (_) {
+            callback({ ok: false, installedVersion: getInstalledVersion() });
+          }
+        })
+        .catch(() => callback({ ok: false, installedVersion: getInstalledVersion() }));
+    };
+  } catch (_) {}
 })();
