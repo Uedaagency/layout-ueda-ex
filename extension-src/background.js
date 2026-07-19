@@ -23,8 +23,8 @@ try {
 // Default settings on install + prefetch branding so first-load has no orange flash
 const BRANDING_SUPABASE_URL = "https://qpssaefptonzbpgcvtrq.supabase.co";
 const BRANDING_SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwc3NhZWZwdG9uemJwZ2N2dHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY4NTUsImV4cCI6MjA5OTUyMjg1NX0.rZVreithJxc4w3T4W45zXTyATai3yjYennoa4nU9Uu8";
-const EXT_UPDATE_ENDPOINT = "https://extensalovable2.lovable.app/api/public/extension-version";
-const EXT_DOWNLOAD_ENDPOINT = "https://extensalovable2.lovable.app/api/public/extension-download";
+const EXT_UPDATE_ENDPOINT = "https://exlovable.uedaagency.com.br/api/public/extension-version";
+const EXT_DOWNLOAD_ENDPOINT = "https://exlovable.uedaagency.com.br/api/public/extension-download";
 const EXT_RELEASES_REST = BRANDING_SUPABASE_URL + "/rest/v1/extension_releases?select=version,title,changelog,force_update,distribution_type,external_url,zip_url,published_at&is_current=eq.true&order=published_at.desc&limit=1";
 const EXT_UPDATE_CACHE_MS = 15000;
 let extUpdateState = { checkedAt: 0, blocked: false, data: null };
