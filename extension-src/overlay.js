@@ -1739,6 +1739,7 @@
 
     console.log("[TS Popup] Menu open:", isFloatingMenuOpen);
     checkUnreadNotifications();
+    refreshUpdateBadge();
 
     const highlightRow = (action, on) => {
       const row = labels.querySelector(`.ts-label-row[data-action="${action}"]`);
