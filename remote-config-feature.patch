@@ -1,0 +1,582 @@
+From d4585060b6a3c3ff44d31424a7083ef72e1d0d0c Mon Sep 17 00:00:00 2001
+From: Ueda Agency <ola@uedaagency.com.br>
+Date: Sun, 19 Jul 2026 13:59:16 +0000
+Subject: [PATCH] feat: sistema de config remota (remote-config)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Adiciona atualização remota de config/conteúdo sem republicar a extensão:
+
+- extension-src/remote-config.js: módulo cache-first que busca config da
+  API própria (fallback Supabase REST), aplica flags/params/texts/links e
+  mostra toast não-bloqueante 'Atualizar' quando config_version muda.
+  Expõe helpers globais uedaFlag/uedaParam/uedaText/uedaLink.
+- src/routes/api/public/remote-config.ts: endpoint GET server-side que lê
+  a tabela remote_config (não expõe estrutura nem URL do Supabase).
+- supabase-remote-config.sql: tabela remote_config (linha única versionada)
+  com trigger de bump automático e RLS somente-leitura.
+- manifest.json / sidepanel.html: registram o novo script (adições apenas).
+
+MV3-safe: transporta apenas DADOS, nunca executa código remoto.
+Nenhuma lógica de arquivo existente foi alterada.
+---
+ extension-src/manifest.json            |   4 +-
+ extension-src/remote-config.js         | 314 +++++++++++++++++++++++++
+ extension-src/sidepanel.html           |   1 +
+ src/routes/api/public/remote-config.ts |  95 ++++++++
+ supabase-remote-config.sql             |  85 +++++++
+ 5 files changed, 498 insertions(+), 1 deletion(-)
+ create mode 100644 extension-src/remote-config.js
+ create mode 100644 src/routes/api/public/remote-config.ts
+ create mode 100644 supabase-remote-config.sql
+
+diff --git a/extension-src/manifest.json b/extension-src/manifest.json
+index e943360..9f50544 100644
+--- a/extension-src/manifest.json
++++ b/extension-src/manifest.json
+@@ -44,6 +44,7 @@
+       "js": [
+         "branding.config.js",
+         "remote-branding.js",
++        "remote-config.js",
+         "jszip.min.js",
+         "hwFingerprint.js",
+         "content-templates.js",
+@@ -79,7 +80,8 @@
+         "jszip.min.js",
+         "hwFingerprint.js",
+         "icons/*",
+-        "remote-branding.js"
++        "remote-branding.js",
++        "remote-config.js"
+       ],
+       "matches": [
+         "https://*.lovable.dev/*",
+diff --git a/extension-src/remote-config.js b/extension-src/remote-config.js
+new file mode 100644
+index 0000000..19b60b0
+--- /dev/null
++++ b/extension-src/remote-config.js
+@@ -0,0 +1,314 @@
++// ============================================================
++// remote-config.js — Configuração dinâmica da UEDA EX
++// ------------------------------------------------------------
++// Generaliza o padrão de remote-branding.js / update-check.js
++// para servir TEXTOS, FLAGS, PARÂMETROS e LINKS remotamente.
++//
++// Fluxo:
++//   1. Aplica cache local imediatamente (sem flash / sem espera).
++//   2. Faz fetch da SUA API (/api/public/remote-config).
++//   3. Se a API falhar, cai no Supabase REST direto (fallback).
++//   4. Compara `config_version`. Se aumentou, salva no cache e
++//      mostra um TOAST não-bloqueante "Atualizar" (não recarrega
++//      nada sozinho — o usuário decide).
++//
++// MV3-safe: só transporta DADOS. Nenhuma linha de config é
++// executada como código. As flags são LIDAS por código que já
++// está embarcado na extensão.
++// ============================================================
++(function () {
++  "use strict";
++
++  // ---- Endpoints ----
++  var API_ENDPOINT = "https://extensalovable2.lovable.app/api/public/remote-config";
++  var SUPABASE_URL = "https://qpssaefptonzbpgcvtrq.supabase.co";
++  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwc3NhZWZwdG9uemJwZ2N2dHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY4NTUsImV4cCI6MjA5OTUyMjg1NX0.rZVreithJxc4w3T4W45zXTyATai3yjYennoa4nU9Uu8";
++  var REST_ENDPOINT =
++    SUPABASE_URL +
++    "/rest/v1/remote_config?id=eq.1&select=config_version,flags,params,texts,links,updated_at&limit=1";
++
++  var CACHE_KEY = "ueda_remote_config";
++  var DEFAULT_POLL_MS = 20000;
++  var FETCH_TIMEOUT = 8000;
++
++  // ---- Estado em memória ----
++  var current = null; // último config aplicado
++  var pollTimer = null;
++
++  // ---------- helpers de cache ----------
++  function readCacheSync() {
++    try {
++      var raw = localStorage.getItem(CACHE_KEY);
++      if (raw) return JSON.parse(raw);
++    } catch (_) {}
++    return null;
++  }
++
++  function saveCache(cfg) {
++    try {
++      localStorage.setItem(CACHE_KEY, JSON.stringify(cfg));
++    } catch (_) {}
++    try {
++      if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
++        var obj = {};
++        obj[CACHE_KEY] = cfg;
++        chrome.storage.local.set(obj);
++      }
++    } catch (_) {}
++  }
++
++  // ---------- aplicação da config ----------
++  // Publica a config num global lido pelo resto da extensão e
++  // dispara um evento para quem quiser reagir dinamicamente.
++  function applyConfig(cfg, opts) {
++    if (!cfg) return;
++    current = cfg;
++    try {
++      window.UEDA_REMOTE_CONFIG = cfg;
++    } catch (_) {}
++
++    // Helpers convenientes para o resto do código consumir:
++    try {
++      window.uedaFlag = function (name, fallback) {
++        var f = (cfg.flags || {})[name];
++        return typeof f === "undefined" ? fallback : f;
++      };
++      window.uedaParam = function (name, fallback) {
++        var p = (cfg.params || {})[name];
++        return typeof p === "undefined" ? fallback : p;
++      };
++      window.uedaText = function (key, locale) {
++        var loc = locale || "pt-BR";
++        var t = (cfg.texts || {})[loc] || {};
++        return t[key];
++      };
++      window.uedaLink = function (name) {
++        return (cfg.links || {})[name];
++      };
++    } catch (_) {}
++
++    try {
++      window.dispatchEvent(
++        new CustomEvent("ueda:remote-config", { detail: cfg })
++      );
++    } catch (_) {}
++
++    // Reajusta o intervalo de polling se o servidor mandou um novo.
++    var poll = (cfg.params && cfg.params.poll_interval_ms) || DEFAULT_POLL_MS;
++    restartPolling(poll);
++
++    // Se veio de um fetch fresco e a versão subiu vs. o que estava
++    // em cache antes, oferece o toast (a menos que seja o boot).
++    if (opts && opts.notifyIfNewer && opts.previousVersion != null) {
++      if ((cfg.config_version || 0) > opts.previousVersion) {
++        showUpdateToast(cfg);
++      }
++    }
++  }
++
++  // ---------- fetch ----------
++  function fetchJson(url, options) {
++    var controller =
++      typeof AbortController !== "undefined" ? new AbortController() : null;
++    var timer = controller
++      ? setTimeout(function () {
++          controller.abort();
++        }, FETCH_TIMEOUT)
++      : null;
++    var opts = Object.assign({ cache: "no-store" }, options || {});
++    if (controller) opts.signal = controller.signal;
++    return fetch(url, opts).then(function (resp) {
++      if (timer) clearTimeout(timer);
++      if (!resp.ok) throw new Error("HTTP " + resp.status);
++      return resp.json();
++    });
++  }
++
++  function normalize(data) {
++    var row = Array.isArray(data) ? data[0] : data;
++    if (!row) return null;
++    return {
++      config_version: Number(row.config_version) || 0,
++      flags: row.flags || {},
++      params: row.params || {},
++      texts: row.texts || {},
++      links: row.links || {},
++      updated_at: row.updated_at || null,
++    };
++  }
++
++  // API própria primeiro; Supabase REST como fallback.
++  function fetchRemote() {
++    return fetchJson(API_ENDPOINT + "?t=" + Date.now())
++      .then(normalize)
++      .catch(function () {
++        return fetchJson(REST_ENDPOINT + "&t=" + Date.now(), {
++          headers: {
++            apikey: SUPABASE_ANON,
++            Authorization: "Bearer " + SUPABASE_ANON,
++          },
++        }).then(normalize);
++      });
++  }
++
++  function check(isBoot) {
++    var previousVersion = current ? current.config_version || 0 : 0;
++    return fetchRemote()
++      .then(function (cfg) {
++        if (!cfg) return;
++        // Ignora fallback "stale" (config_version 0) se já temos algo melhor.
++        if (cfg.config_version === 0 && previousVersion > 0) return;
++        saveCache(cfg);
++        applyConfig(cfg, {
++          notifyIfNewer: !isBoot,
++          previousVersion: previousVersion,
++        });
++      })
++      .catch(function () {
++        /* mantém cache atual em silêncio */
++      });
++  }
++
++  // ---------- polling ----------
++  function restartPolling(intervalMs) {
++    if (pollTimer) clearInterval(pollTimer);
++    pollTimer = setInterval(function () {
++      check(false);
++    }, Math.max(5000, intervalMs || DEFAULT_POLL_MS));
++  }
++
++  // ---------- toast não-bloqueante ----------
++  function injectToastStyles() {
++    if (document.getElementById("__ueda_rc_toast_styles")) return;
++    var s = document.createElement("style");
++    s.id = "__ueda_rc_toast_styles";
++    s.textContent =
++      "#__ueda_rc_toast{position:fixed;right:18px;bottom:18px;z-index:2147483647;" +
++      "display:flex;align-items:center;gap:12px;max-width:340px;padding:12px 14px;" +
++      "border-radius:14px;background:linear-gradient(180deg,#111827,#0b0f16);" +
++      "border:1px solid rgba(56,189,248,.28);color:#f8fafc;" +
++      "font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;" +
++      "font-size:13px;line-height:1.4;box-shadow:0 18px 44px rgba(0,0,0,.42);" +
++      "opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s}" +
++      "#__ueda_rc_toast.__visible{opacity:1;transform:translateY(0)}" +
++      "#__ueda_rc_toast .__ico{width:30px;height:30px;flex:0 0 30px;border-radius:9px;" +
++      "background:rgba(56,189,248,.14);display:grid;place-items:center;color:#7dd3fc;font-size:16px}" +
++      "#__ueda_rc_toast .__msg{flex:1;min-width:0}" +
++      "#__ueda_rc_toast .__msg b{display:block;font-weight:800;color:#fff;margin-bottom:1px}" +
++      "#__ueda_rc_toast .__msg span{color:#cbd5e1;font-size:11.5px}" +
++      "#__ueda_rc_toast button{border:none;cursor:pointer;border-radius:10px;" +
++      "padding:8px 12px;font-weight:800;font-size:12px}" +
++      "#__ueda_rc_toast .__go{background:linear-gradient(135deg,#00a8ff,#0078ff);color:#fff}" +
++      "#__ueda_rc_toast .__x{background:transparent;color:#94a3b8;padding:8px 6px}";
++    (document.head || document.documentElement).appendChild(s);
++  }
++
++  function dismissToast() {
++    var el = document.getElementById("__ueda_rc_toast");
++    if (!el) return;
++    el.classList.remove("__visible");
++    setTimeout(function () {
++      if (el && el.parentNode) el.parentNode.removeChild(el);
++    }, 280);
++  }
++
++  function showUpdateToast(cfg) {
++    if (!document.body) {
++      document.addEventListener(
++        "DOMContentLoaded",
++        function () {
++          showUpdateToast(cfg);
++        },
++        { once: true }
++      );
++      return;
++    }
++    injectToastStyles();
++    dismissToast();
++
++    var title =
++      (window.uedaText && window.uedaText("update_available")) ||
++      "Nova configuração disponível";
++    var action =
++      (window.uedaText && window.uedaText("update_action")) || "Atualizar";
++
++    var el = document.createElement("div");
++    el.id = "__ueda_rc_toast";
++    el.innerHTML =
++      '<div class="__ico">↻</div>' +
++      '<div class="__msg"><b></b><span>Clique para aplicar as novidades.</span></div>' +
++      '<button class="__go" type="button"></button>' +
++      '<button class="__x" type="button" aria-label="Fechar">✕</button>';
++    el.querySelector(".__msg b").textContent = title;
++    el.querySelector(".__go").textContent = action;
++
++    el.querySelector(".__go").addEventListener("click", function () {
++      // "Atualizar" = re-aplicar config e recarregar só a UI da extensão.
++      try {
++        applyConfig(cfg);
++      } catch (_) {}
++      dismissToast();
++      // Recarrega apenas a página da própria extensão (sidepanel),
++      // nunca a aba do usuário.
++      try {
++        if (location.protocol === "chrome-extension:") location.reload();
++      } catch (_) {}
++    });
++    el.querySelector(".__x").addEventListener("click", dismissToast);
++
++    document.body.appendChild(el);
++    requestAnimationFrame(function () {
++      el.classList.add("__visible");
++    });
++  }
++
++  // ---------- sincronização entre contextos ----------
++  try {
++    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
++      chrome.storage.onChanged.addListener(function (changes, area) {
++        if (area === "local" && changes[CACHE_KEY] && changes[CACHE_KEY].newValue) {
++          var prev = current ? current.config_version || 0 : 0;
++          var next = changes[CACHE_KEY].newValue;
++          applyConfig(next, { notifyIfNewer: true, previousVersion: prev });
++        }
++      });
++    }
++  } catch (_) {}
++
++  // ---------- boot ----------
++  // 1) cache síncrono imediato
++  var cached = readCacheSync();
++  if (cached) applyConfig(cached, { notifyIfNewer: false });
++
++  // 2) também tenta o chrome.storage.local (compartilhado)
++  try {
++    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
++      chrome.storage.local.get([CACHE_KEY], function (res) {
++        var s = res && res[CACHE_KEY];
++        if (s && !cached) applyConfig(s, { notifyIfNewer: false });
++        check(true); // primeira busca fresca é boot (não notifica)
++      });
++    } else {
++      check(true);
++    }
++  } catch (_) {
++    check(true);
++  }
++
++  // 3) revalidação em foco / visibilidade
++  try {
++    window.addEventListener("focus", function () {
++      check(false);
++    });
++    document.addEventListener("visibilitychange", function () {
++      if (!document.hidden) check(false);
++    });
++  } catch (_) {}
++
++  // Expor um método manual de refresh, se algum botão quiser usar.
++  try {
++    window.uedaRefreshConfig = function () {
++      return check(false);
++    };
++  } catch (_) {}
++})();
+diff --git a/extension-src/sidepanel.html b/extension-src/sidepanel.html
+index ced6801..6e3550f 100644
+--- a/extension-src/sidepanel.html
++++ b/extension-src/sidepanel.html
+@@ -6,6 +6,7 @@
+   <title>Painel Lovable - Painel Lateral</title>
+   <script src="branding.config.js"></script>
+   <script src="remote-branding.js"></script>
++  <script src="remote-config.js"></script>
+   <link rel="stylesheet" href="sidepanel.css">
+ </head>
+ <body>
+diff --git a/src/routes/api/public/remote-config.ts b/src/routes/api/public/remote-config.ts
+new file mode 100644
+index 0000000..3317d74
+--- /dev/null
++++ b/src/routes/api/public/remote-config.ts
+@@ -0,0 +1,95 @@
++import { createFileRoute } from "@tanstack/react-router";
++
++// ============================================================
++// GET /api/public/remote-config
++// ------------------------------------------------------------
++// Serve a configuração dinâmica da extensão lendo a tabela
++// `remote_config` no Supabase SERVER-SIDE. A extensão nunca
++// precisa saber a estrutura da tabela nem a URL do Supabase.
++//
++// Segurança / MV3:
++//   - Apenas leitura. Retorna DADOS e CONFIG (flags, params,
++//     texts, links). Nunca código executável.
++//   - Usa a anon key (somente SELECT liberado por RLS). Mesmo
++//     que vaze, não dá escrita.
++//   - CORS "*" liberado: origem chrome-extension:// não manda
++//     Origin previsível, e é só leitura de config pública.
++// ============================================================
++
++const SUPABASE_URL =
++  process.env.SUPABASE_URL ?? "https://qpssaefptonzbpgcvtrq.supabase.co";
++const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY ?? "";
++
++const REST_URL =
++  SUPABASE_URL +
++  "/rest/v1/remote_config" +
++  "?id=eq.1&select=config_version,flags,params,texts,links,updated_at&limit=1";
++
++const CORS: Record<string, string> = {
++  "Access-Control-Allow-Origin": "*",
++  "Access-Control-Allow-Methods": "GET, OPTIONS",
++  "Access-Control-Allow-Headers": "content-type",
++};
++
++// Fallback servido se o Supabase estiver fora do ar. A extensão
++// usa o cache local, mas isto evita que ela veja um erro HTTP.
++const FALLBACK = {
++  config_version: 0,
++  flags: {},
++  params: { poll_interval_ms: 20000 },
++  texts: {},
++  links: {},
++  updated_at: null as string | null,
++  _stale: true as const,
++};
++
++async function readConfig() {
++  if (!SUPABASE_ANON) return FALLBACK;
++
++  const controller = new AbortController();
++  const timer = setTimeout(() => controller.abort(), 6000);
++  try {
++    const resp = await fetch(REST_URL, {
++      headers: {
++        apikey: SUPABASE_ANON,
++        Authorization: "Bearer " + SUPABASE_ANON,
++      },
++      signal: controller.signal,
++    });
++    if (!resp.ok) return FALLBACK;
++    const rows = (await resp.json()) as Array<Record<string, unknown>>;
++    const row = Array.isArray(rows) ? rows[0] : null;
++    if (!row) return FALLBACK;
++    return {
++      config_version: Number(row.config_version) || 0,
++      flags: row.flags ?? {},
++      params: row.params ?? {},
++      texts: row.texts ?? {},
++      links: row.links ?? {},
++      updated_at: (row.updated_at as string) ?? null,
++    };
++  } catch {
++    return FALLBACK;
++  } finally {
++    clearTimeout(timer);
++  }
++}
++
++export const Route = createFileRoute("/api/public/remote-config")({
++  server: {
++    handlers: {
++      OPTIONS: () => new Response(null, { headers: CORS }),
++      GET: async () => {
++        const config = await readConfig();
++        return new Response(JSON.stringify(config), {
++          status: 200,
++          headers: {
++            ...CORS,
++            "Content-Type": "application/json",
++            "Cache-Control": "public, max-age=15, s-maxage=15",
++          },
++        });
++      },
++    },
++  },
++});
+diff --git a/supabase-remote-config.sql b/supabase-remote-config.sql
+new file mode 100644
+index 0000000..eb7853e
+--- /dev/null
++++ b/supabase-remote-config.sql
+@@ -0,0 +1,85 @@
++-- ============================================================
++-- remote_config — configuração dinâmica servida à extensão
++-- ------------------------------------------------------------
++-- Uma única linha (id = 1) versionada. A extensão compara
++-- `config_version`; quando muda, mostra o toast "Atualizar".
++--
++-- IMPORTANTE (MV3): esta tabela guarda apenas DADOS e CONFIG
++-- (textos, flags, parâmetros, links). NUNCA guarde código-fonte
++-- ou trechos de JS para serem executados — isso viola o Manifest
++-- V3 e é motivo de remoção da Chrome Web Store.
++-- ============================================================
++
++create table if not exists public.remote_config (
++  id             integer primary key default 1,
++  config_version integer not null default 1,
++  flags          jsonb   not null default '{}'::jsonb,
++  params         jsonb   not null default '{}'::jsonb,
++  texts          jsonb   not null default '{}'::jsonb,
++  links          jsonb   not null default '{}'::jsonb,
++  updated_at     timestamptz not null default now(),
++  constraint remote_config_singleton check (id = 1)
++);
++
++-- Bump automático de config_version + updated_at a cada UPDATE,
++-- para a extensão nunca depender de o admin lembrar de incrementar.
++create or replace function public.bump_remote_config_version()
++returns trigger
++language plpgsql
++as $$
++begin
++  new.updated_at := now();
++  if new.config_version <= old.config_version then
++    new.config_version := old.config_version + 1;
++  end if;
++  return new;
++end;
++$$;
++
++drop trigger if exists trg_bump_remote_config on public.remote_config;
++create trigger trg_bump_remote_config
++  before update on public.remote_config
++  for each row
++  execute function public.bump_remote_config_version();
++
++-- Linha inicial (idempotente)
++insert into public.remote_config (id, config_version, flags, params, texts, links)
++values (
++  1,
++  1,
++  '{
++    "migrar_cloud_enabled": false,
++    "beta_panel": false
++  }'::jsonb,
++  '{
++    "poll_interval_ms": 20000,
++    "max_projects": 10
++  }'::jsonb,
++  '{
++    "pt-BR": {
++      "btn_migrate": "Migrar Cloud",
++      "update_available": "Nova configuração disponível",
++      "update_action": "Atualizar"
++    }
++  }'::jsonb,
++  '{
++    "support": "https://wa.me/5561998239879",
++    "sales": "https://wa.me/5561998239879"
++  }'::jsonb
++)
++on conflict (id) do nothing;
++
++-- ---------- RLS ----------
++-- Leitura pública (anon) apenas SELECT. Escrita só via service_role
++-- (painel admin server-side). A extensão só lê.
++alter table public.remote_config enable row level security;
++
++drop policy if exists "remote_config public read" on public.remote_config;
++create policy "remote_config public read"
++  on public.remote_config
++  for select
++  to anon, authenticated
++  using (true);
++
++-- (Nenhuma policy de INSERT/UPDATE/DELETE para anon: bloqueado por padrão.
++--  O painel admin escreve usando a service_role key, que bypassa RLS.)
+-- 
+2.43.0
+
