@@ -545,7 +545,7 @@ function FloatingPreview() {
                 key={it.id}
                 type="button"
                 onClick={() => setActiveTab(active ? null : it.id)}
-                className="flex h-9 w-9 items-center justify-center rounded-full transition"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full transition"
                 style={{
                   background: active ? "#fff" : "transparent",
                   color: active ? "#0f2a42" : "rgba(255,255,255,0.85)",
@@ -554,6 +554,14 @@ function FloatingPreview() {
                 title={it.label}
               >
                 <it.icon size={15} strokeWidth={1.9} />
+                {it.locked && (
+                  <span
+                    className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full"
+                    style={{ background: "#0f2a42", border: "1px solid rgba(255,255,255,0.4)" }}
+                  >
+                    <Lock size={7} strokeWidth={2.5} color="#fff" />
+                  </span>
+                )}
               </button>
             );
           })}
