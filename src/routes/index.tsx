@@ -614,19 +614,21 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
     skills: "Skills",
     history: "Histórico",
     user: "Magda",
-    optimize: "Otimizar",
+    optimize: "Reescrever",
     "insert-skill": "Inserir Skill",
     "new-project": "Criar projeto novo",
     download: "Baixar projeto",
     "remove-watermark": "Remover marca d'água",
     shortcuts: "Atalhos",
+    "migrate-cloud": "Migrar Cloud",
   };
   const descriptions: Partial<Record<Exclude<FloatingTab, null>, string>> = {
-    optimize: "Analisa o projeto e sugere melhorias de performance, código e UX.",
+    optimize: "Reescreve e melhora o prompt atual mantendo a intenção original.",
     "insert-skill": "Adiciona uma skill personalizada ao contexto do agente.",
     "new-project": "Cria um novo projeto em branco com a estrutura padrão.",
     download: "Baixa o projeto atual como um arquivo .zip.",
     "remove-watermark": "Remove marcas d'água aplicadas pela extensão.",
+    "migrate-cloud": "Disponível para planos com mais de 30 dias. Migre seu projeto para a Cloud oficial.",
   };
   return (
     <div>
