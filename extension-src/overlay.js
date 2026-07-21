@@ -310,6 +310,21 @@
         padding: 0 !important;
         background: #22c55e !important;
       }
+      #${MENU_ID} .ts-fab-item.ts-fab-locked .ts-fab-circle { opacity: 0.4 !important; }
+      #${MENU_ID} .ts-fab-item.ts-fab-locked .ts-fab-lock {
+        position: absolute !important;
+        right: -3px !important;
+        bottom: -3px !important;
+        width: 15px !important;
+        height: 15px !important;
+        border-radius: 999px !important;
+        background: #64748b !important;
+        color: #fff !important;
+        display: grid !important;
+        place-items: center !important;
+        box-shadow: 0 0 0 2px rgba(15,15,20,0.95) !important;
+      }
+      #${MENU_ID} .ts-fab-item.ts-fab-locked .ts-fab-lock svg { width: 9px !important; height: 9px !important; }
       @keyframes tsLauncherDotPulse {
         0%,100% { transform: scale(1); }
         50%     { transform: scale(1.15); }
@@ -1591,7 +1606,9 @@
     history:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>',
     powerOn:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>',
     powerOff:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>',
-    refresh:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3.51-7.11"/><polyline points="21 3 21 9 15 9"/></svg>',
+    refresh:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>',
+    migrate:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3"/><path d="m16 19 3 3 3-3"/><path d="M19 15v7"/></svg>',
+    lock:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
   };
 
   const MAIN_ITEMS = [
@@ -1601,11 +1618,12 @@
     { action: "skill",        icon: LICON.wand,       label: "Inserir Skill" },
     { action: "new-project",  icon: LICON.filePlus,   label: "Criar projeto novo" },
     { action: "download",     icon: LICON.download,   label: "Baixar projeto" },
+    { action: "migrate",      icon: LICON.migrate,    label: "Migrar Cloud" },
     { action: "watermark",    icon: LICON.badgeX,     label: "Remover marca d'água" },
     
     { action: "sidebar",      icon: LICON.panelRight, label: "Painel lateral" },
-    { action: "toggle-here",  icon: LICON.powerOn,    label: "Extensão ON", dynamic: "toggle" },
     { action: "update",       icon: LICON.refresh,    label: "Atualizar" },
+    { action: "toggle-here",  icon: LICON.powerOn,    label: "Extensão ON", dynamic: "toggle" },
   ];
 
   // Determine which side of the preview the launcher is on, to align the
@@ -1714,7 +1732,38 @@
     menu.classList.add("ts-floating-menu-open");
     positionMenuRelativeToLauncher(menu);
 
-    // Companion white labels panel
+    // Faixa de teste da config remota: mostra o texto "test_banner" vindo do
+    // remote-config. Serve para verificar se o botão Atualizar está puxando do
+    // servidor. Fica invisível se o campo não existir (produção normal).
+    try {
+      var testBanner = (window.uedaText && window.uedaText("test_banner")) || null;
+      if (testBanner) {
+        var tb = document.createElement("div");
+        tb.className = "ts-fab-testbanner";
+        tb.textContent = testBanner;
+        tb.style.cssText = "margin-top:6px;padding:7px 10px;border-radius:10px;background:#eef2ff;color:#3730a3;font-size:11px;font-weight:700;text-align:center;border:1px solid #c7d2fe";
+        menu.appendChild(tb);
+      }
+    } catch (_) {}
+
+    // quem não tem plano de 30 dias. Assíncrono: aplica assim que o storage
+    // responde, sem travar a renderização do menu.
+    try {
+      getMigrationAccess((access) => {
+        if (access.allowed) return;
+        const mBtn = menu.querySelector('.ts-fab-item[data-action="migrate"]');
+        if (mBtn && !mBtn.querySelector(".ts-fab-lock")) {
+          mBtn.classList.add("ts-fab-locked");
+          const circle = mBtn.querySelector(".ts-fab-circle");
+          if (circle) {
+            const lock = document.createElement("span");
+            lock.className = "ts-fab-lock";
+            lock.innerHTML = LICON.lock;
+            circle.appendChild(lock);
+          }
+        }
+      });
+    } catch (_) {}
     const labels = document.createElement("div");
     labels.id = LABELS_ID;
     labels.innerHTML = MAIN_ITEMS.map((it) => {
@@ -1914,6 +1963,27 @@
     }
   } catch (_) {}
 
+  // Migração Cloud: liberada só para planos de 30 dias OU MAIS (ou vitalício).
+  // Lê ql_license_duration_days / ql_license_lifetime do storage, gravados
+  // pelo content.js a partir da validação de licença.
+  var MIGRATION_MIN_DAYS = 30;
+  function getMigrationAccess(callback) {
+    try {
+      chrome.storage.local.get(
+        ["ql_license_valid", "ql_license_duration_days", "ql_license_lifetime"],
+        function (r) {
+          var valid = !!(r && r.ql_license_valid);
+          var lifetime = !!(r && r.ql_license_lifetime);
+          var days = parseInt(r && r.ql_license_duration_days, 10);
+          var allowed = valid && (lifetime || (!isNaN(days) && days >= MIGRATION_MIN_DAYS));
+          callback({ allowed: allowed, valid: valid, lifetime: lifetime, days: isNaN(days) ? null : days });
+        }
+      );
+    } catch (_) {
+      callback({ allowed: false, valid: false, lifetime: false, days: null });
+    }
+  }
+
   async function checkUnreadNotifications() {
     try {
       const data = await fetchNotifications();
@@ -1986,6 +2056,24 @@
       openCenteredModal("Baixar projeto", '<p style="margin:0;color:#334155;font-size:13px;line-height:1.55">⏳ Preparando o download dos arquivos do projeto. Isso pode levar alguns segundos…</p>');
       runIframeAction("download");
       closeMenu();
+    } else if (action === "migrate") {
+      closeMenu();
+      getMigrationAccess((access) => {
+        if (access.allowed) {
+          openMigrationWizard();
+        } else {
+          openCenteredModal(
+            "Migrar Cloud",
+            '<div style="text-align:center;padding:6px 4px">' +
+              '<div style="width:52px;height:52px;margin:4px auto 14px;border-radius:14px;background:#fef3c7;display:grid;place-items:center;color:#b45309">' +
+                '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
+              '</div>' +
+              '<p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#0f172a">Disponível no plano de 30 dias</p>' +
+              '<p style="margin:0;font-size:13px;line-height:1.55;color:#475569">A migração de banco de dados é exclusiva para clientes com plano de 30 dias ou superior. Faça upgrade do seu plano para desbloquear esta função.</p>' +
+            '</div>'
+          );
+        }
+      });
     } else if (action === "optimize") {
       const composer = findNativeComposer();
       const text = composer ? readComposerText(composer).trim() : "";
@@ -2023,27 +2111,61 @@
           return;
         }
         if (result.hasUpdate) {
-          const changelogHtml = result.changelog
-            ? '<pre style="white-space:pre-wrap;margin:10px 0 0;padding:10px;border-radius:10px;background:#f1f5f9;color:#0f172a;font-size:12px;line-height:1.5;max-height:220px;overflow:auto">' +
-              String(result.changelog).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])) +
-              '</pre>'
-            : '';
           openCenteredModal(
             "Atualização disponível",
-            '<p style="margin:0;color:#334155;font-size:13px;line-height:1.55">' +
-              'Versão instalada: <b>' + (result.installedVersion || "-") + '</b><br>' +
-              'Nova versão: <b>' + (result.latestVersion || "-") + '</b>' +
-              (result.title ? '<br><br><b>' + String(result.title).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])) + '</b>' : '') +
-              '</p>' + changelogHtml +
-              '<div style="margin-top:14px"><button id="ts-update-download-btn" style="width:100%;padding:11px 14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00a8ff,#0078ff);color:#fff;font-weight:800;font-size:13px;cursor:pointer">Baixar atualização</button></div>'
+            '<div id="ts-update-wrap">' +
+              '<p style="margin:0 0 10px;color:#334155;font-size:13px;line-height:1.55">' +
+                "Versão instalada: <b>" + (result.installedVersion || "-") + "</b><br>" +
+                "Nova versão: <b>" + (result.latestVersion || "-") + "</b>" +
+                (result.changelog ? "</p><p style=\"margin:0 0 12px;color:#475569;font-size:12.5px;line-height:1.5;white-space:pre-wrap\">" + result.changelog : "") +
+              "</p>" +
+              '<button type="button" id="ts-update-apply-btn" style="width:100%;border:none;border-radius:10px;padding:11px 14px;background:linear-gradient(135deg,#00a8ff,#0078ff);color:#fff;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">Atualizar agora</button>' +
+            "</div>"
           );
-          const btn = document.getElementById("ts-update-download-btn");
+          const btn = document.getElementById("ts-update-apply-btn");
           if (btn) {
             btn.addEventListener("click", () => {
+              const wrap = document.getElementById("ts-update-wrap");
+              if (wrap) {
+                wrap.innerHTML =
+                  '<div style="text-align:center;padding:18px 6px">' +
+                    '<div class="ts-update-spinner" style="width:38px;height:38px;margin:0 auto 14px;border:3px solid #e2e8f0;border-top-color:#0078ff;border-radius:50%;animation:tsUpdSpin .8s linear infinite"></div>' +
+                    '<p style="margin:0;font-size:14px;font-weight:700;color:#0f172a">Atualizando…</p>' +
+                    '<p style="margin:6px 0 0;font-size:12px;color:#64748b">Buscando novidades e aplicando</p>' +
+                  "</div>" +
+                  '<style>@keyframes tsUpdSpin{to{transform:rotate(360deg)}}</style>';
+              }
+              // Puxa a config nova do servidor (sem baixar nada) e recarrega a
+              // interface da extensão para aplicar. O código em si não muda —
+              // só o conteúdo/config servido pelo remote-config.
+              const doReload = () => {
+                setTimeout(() => {
+                  try {
+                    // Recarrega a página do Lovable para reinjetar a UI já com
+                    // a config nova aplicada.
+                    if (wrap) {
+                      wrap.innerHTML =
+                        '<div style="text-align:center;padding:18px 6px">' +
+                          '<div style="width:44px;height:44px;margin:0 auto 12px;border-radius:12px;background:#f0fdf4;display:grid;place-items:center;color:#166534">' +
+                            '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>' +
+                          "</div>" +
+                          '<p style="margin:0;font-size:14px;font-weight:700;color:#0f172a">Tudo atualizado!</p>' +
+                          '<p style="margin:6px 0 0;font-size:12px;color:#64748b">Recarregando…</p>' +
+                        "</div>";
+                    }
+                    setTimeout(() => { try { location.reload(); } catch (_) {} }, 900);
+                  } catch (_) {}
+                }, 600);
+              };
               try {
-                if (chrome && chrome.tabs && chrome.tabs.create) chrome.tabs.create({ url: result.downloadUrl, active: true });
-                else window.open(result.downloadUrl, "_blank", "noopener,noreferrer");
-              } catch (_) { window.open(result.downloadUrl, "_blank", "noopener,noreferrer"); }
+                if (window.uedaRefreshConfig) {
+                  const p = window.uedaRefreshConfig();
+                  if (p && typeof p.then === "function") p.then(doReload).catch(doReload);
+                  else doReload();
+                } else {
+                  doReload();
+                }
+              } catch (_) { doReload(); }
             });
           }
         } else {
@@ -2144,6 +2266,234 @@
     back.querySelector(".ts-modal-close").addEventListener("click", closeCenteredModal);
     return back.querySelector("#" + MODAL_ID);
   }
+
+  // ===================== Migração Cloud (wizard 3 passos) =====================
+  // Endpoint do SERVIDOR de migração (roda no seu domínio). O servidor recebe
+  // as credenciais que o CLIENTE cola aqui, revalida o plano do cliente, e faz
+  // a migração. As credenciais nunca ficam salvas na extensão — vivem só nesta
+  // sessão da janela, e são descartadas quando ela fecha.
+  // ===================== Migração Cloud — wizard guiado (caminho oficial) =====================
+  // Em vez de extrair a service_role (backdoor) ou criar uma página pública com
+  // exec_sql (buraco de segurança), este wizard GUIA o cliente pelo caminho
+  // oficial do Lovable (Export → conectar Supabase próprio), lançado em 2026.
+  // A extensão detecta o projeto e conduz o cliente pelos passos; o próprio
+  // Lovable/Supabase faz o trabalho pesado. Nenhuma credencial sensível é
+  // extraída, salva ou trafega pela extensão.
+  var migrationState = null;
+
+  // Detecta o projeto Lovable aberto e seus dados PÚBLICOS (URL, ref,
+  // publishable key) a partir do source-code — nunca a service_role.
+  function detectLovableProject(callback) {
+    try {
+      chrome.storage.local.get(["lovable_projectId", "lovable_token"], function (r) {
+        var projectId = (r && r.lovable_projectId) || null;
+        var token = (r && r.lovable_token) || null;
+        if (!projectId || !token) {
+          callback({ projectId: projectId, hasToken: !!token, url: null, ref: null, publishableKey: null });
+          return;
+        }
+        try {
+          chrome.runtime.sendMessage(
+            { action: "detectSupabaseConfig", projectId: projectId, token: token },
+            function (resp) {
+              if (chrome.runtime.lastError || !resp || !resp.ok) {
+                callback({ projectId: projectId, hasToken: true, url: null, ref: null, publishableKey: null });
+              } else {
+                callback({
+                  projectId: projectId, hasToken: true,
+                  url: resp.url || null, ref: resp.ref || null, publishableKey: resp.publishableKey || null,
+                });
+              }
+            }
+          );
+        } catch (_) {
+          callback({ projectId: projectId, hasToken: true, url: null, ref: null, publishableKey: null });
+        }
+      });
+    } catch (_) {
+      callback({ projectId: null, hasToken: false, url: null, ref: null, publishableKey: null });
+    }
+  }
+
+  // Total de passos do fluxo guiado.
+  var MIG_STEPS = ["Projeto", "GitHub", "Supabase", "Exportar", "Conectar"];
+
+  function migStepBar(step) {
+    return (
+      '<div style="display:flex;align-items:center;gap:5px;margin:0 0 16px;flex-wrap:wrap">' +
+      MIG_STEPS.map(function (s, i) {
+        var n = i + 1;
+        var active = n === step, done = n < step;
+        var bg = done ? "#22c55e" : (active ? "#0078ff" : "#e2e8f0");
+        var col = done || active ? "#fff" : "#94a3b8";
+        return (
+          '<div style="display:flex;align-items:center;gap:5px">' +
+            '<span style="width:20px;height:20px;border-radius:999px;background:' + bg + ';color:' + col + ';font-size:10px;font-weight:800;display:grid;place-items:center">' + (done ? "✓" : n) + "</span>" +
+            '<span style="font-size:10.5px;font-weight:700;color:' + (active ? "#0f172a" : "#94a3b8") + '">' + s + "</span>" +
+            (n < MIG_STEPS.length ? '<span style="width:12px;height:1px;background:#e2e8f0"></span>' : "") +
+          "</div>"
+        );
+      }).join("") +
+      "</div>"
+    );
+  }
+
+  // Botão que abre uma URL numa nova aba via background (o overlay não tem
+  // acesso a chrome.tabs).
+  function migOpenTab(url) {
+    try {
+      chrome.runtime.sendMessage({ action: "openUpdateDownload", url: url }, function (resp) {
+        if (chrome.runtime.lastError || !resp || !resp.ok) {
+          try { window.open(url, "_blank", "noopener,noreferrer"); } catch (_) {}
+        }
+      });
+    } catch (_) {
+      try { window.open(url, "_blank", "noopener,noreferrer"); } catch (_) {}
+    }
+  }
+
+  function migNavButtons(step) {
+    var back = step > 1
+      ? '<button type="button" id="mig-back" style="border:1px solid #e2e8f0;border-radius:10px;padding:10px 18px;background:#fff;color:#475569;font-size:13px;font-weight:700;cursor:pointer">← Voltar</button>'
+      : '<span></span>';
+    var nextLabel = step < MIG_STEPS.length ? "Continuar →" : "Concluir";
+    var next = '<button type="button" id="mig-next" style="border:none;border-radius:10px;padding:10px 18px;background:linear-gradient(135deg,#00a8ff,#0078ff);color:#fff;font-size:13px;font-weight:800;cursor:pointer">' + nextLabel + "</button>";
+    return '<div style="display:flex;justify-content:space-between;gap:8px;margin-top:18px">' + back + next + "</div>";
+  }
+
+  function migInfoBox(html, tone) {
+    var c = tone === "warn"
+      ? { b: "#fde68a", bg: "#fffbeb", t: "#92400e" }
+      : (tone === "ok" ? { b: "#bbf7d0", bg: "#f0fdf4", t: "#166534" } : { b: "#e2e8f0", bg: "#f8fafc", t: "#475569" });
+    return '<div style="border:1px solid ' + c.b + ';background:' + c.bg + ';border-radius:10px;padding:10px 12px;margin:10px 0;font-size:12px;line-height:1.55;color:' + c.t + '">' + html + "</div>";
+  }
+
+  function migActionBtn(id, label) {
+    return '<button type="button" id="' + id + '" style="width:100%;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px 14px;margin:6px 0 2px;font-size:12.5px;font-weight:700;color:#334155;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">' + label + "</button>";
+  }
+
+  function renderMigrationStep(step) {
+    var modal = document.getElementById(MODAL_ID);
+    if (!modal) return;
+    var body = modal.querySelector(".ts-modal-body");
+    if (!body) return;
+    var head = migStepBar(step);
+
+    if (step === 1) {
+      body.innerHTML = head +
+        '<p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#0f172a">Passo 1 — Seu projeto</p>' +
+        '<p style="margin:0;font-size:12px;line-height:1.5;color:#64748b">Vamos migrar este projeto do Lovable Cloud para o seu próprio Supabase, pelo caminho oficial do Lovable. Nada do seu banco fica exposto.</p>' +
+        '<div id="mig-detect">' + migInfoBox("Detectando projeto Lovable aberto…") + "</div>" +
+        migNavButtons(1);
+      detectLovableProject(function (info) {
+        var box = body.querySelector("#mig-detect");
+        if (!box) return;
+        if (info.projectId) {
+          migrationState.projectId = info.projectId;
+          migrationState.url = info.url || null;
+          box.innerHTML = migInfoBox(
+            '<b style="color:#166534">✓ Projeto detectado</b><br>' +
+            '<span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px">Project ID: ' + escapeHtml(info.projectId) + "</span>" +
+            (info.ref ? '<br><span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px">Supabase ref: ' + escapeHtml(info.ref) + "</span>" : ""),
+            "ok"
+          );
+        } else {
+          box.innerHTML = migInfoBox("Não detectei um projeto Lovable aberto. Abra a extensão dentro de uma aba do seu projeto no Lovable e clique em Redetectar.", "warn") +
+            migActionBtn("mig-redetect", "↻ Redetectar");
+          var re = box.querySelector("#mig-redetect");
+          if (re) re.addEventListener("click", function () { renderMigrationStep(1); });
+        }
+      });
+      body.querySelector("#mig-next").addEventListener("click", function () { renderMigrationStep(2); });
+    }
+
+    else if (step === 2) {
+      body.innerHTML = head +
+        '<p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#0f172a">Passo 2 — Conectar ao GitHub</p>' +
+        '<p style="margin:0;font-size:12px;line-height:1.5;color:#64748b">O Lovable sincroniza o código do seu projeto com o GitHub. Isso é necessário para a migração e é seguro — só o código, sem dados sensíveis.</p>' +
+        migInfoBox("1. Clique no botão abaixo para abrir as configurações de GitHub do seu projeto.<br>2. Autorize a conexão com o GitHub.<br>3. Volte aqui e clique em Continuar.") +
+        migActionBtn("mig-open-github", "↗ Abrir conexão GitHub no Lovable") +
+        migNavButtons(2);
+      body.querySelector("#mig-open-github").addEventListener("click", function () {
+        var pid = migrationState.projectId;
+        migOpenTab(pid ? ("https://lovable.dev/projects/" + pid + "/settings/github") : "https://lovable.dev/settings/git/github");
+      });
+      body.querySelector("#mig-back").addEventListener("click", function () { renderMigrationStep(1); });
+      body.querySelector("#mig-next").addEventListener("click", function () { renderMigrationStep(3); });
+    }
+
+    else if (step === 3) {
+      body.innerHTML = head +
+        '<p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#0f172a">Passo 3 — Criar seu Supabase</p>' +
+        '<p style="margin:0;font-size:12px;line-height:1.5;color:#64748b">Este será o novo lar do seu banco de dados, só seu. Se você já tem uma conta e um projeto no Supabase, pode pular a criação.</p>' +
+        migInfoBox("1. Abra o Supabase no botão abaixo.<br>2. Crie uma conta (se ainda não tem) e um novo projeto.<br>3. <b>Guarde a senha do banco</b> que você definir — vai precisar dela.<br>4. Volte aqui e clique em Continuar.") +
+        migActionBtn("mig-open-supabase", "↗ Abrir o Supabase") +
+        migNavButtons(3);
+      body.querySelector("#mig-open-supabase").addEventListener("click", function () {
+        migOpenTab("https://supabase.com/dashboard/new");
+      });
+      body.querySelector("#mig-back").addEventListener("click", function () { renderMigrationStep(2); });
+      body.querySelector("#mig-next").addEventListener("click", function () { renderMigrationStep(4); });
+    }
+
+    else if (step === 4) {
+      body.innerHTML = head +
+        '<p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#0f172a">Passo 4 — Exportar os dados (oficial)</p>' +
+        '<p style="margin:0;font-size:12px;line-height:1.5;color:#64748b">Agora usamos a exportação oficial do Lovable. Ela leva schema, dados, políticas de segurança e usuários (com as senhas) — tudo, com segurança e sem expor seu banco.</p>' +
+        migInfoBox("1. Abra o seu projeto no botão abaixo (aba Cloud).<br>2. Vá em <b>Overview → Advanced settings</b>.<br>3. Clique em <b>Export project data</b> e baixe o arquivo.<br>4. Guarde o arquivo com cuidado (contém dados dos seus usuários).<br>5. Volte aqui e clique em Continuar.", "ok") +
+        migActionBtn("mig-open-export", "↗ Abrir Cloud → Advanced settings") +
+        migInfoBox("A exportação é gratuita e não consome créditos do Lovable.", "warn") +
+        migNavButtons(4);
+      body.querySelector("#mig-open-export").addEventListener("click", function () {
+        var pid = migrationState.projectId;
+        migOpenTab(pid ? ("https://lovable.dev/projects/" + pid) : "https://lovable.dev/");
+      });
+      body.querySelector("#mig-back").addEventListener("click", function () { renderMigrationStep(3); });
+      body.querySelector("#mig-next").addEventListener("click", function () { renderMigrationStep(5); });
+    }
+
+    else if (step === 5) {
+      body.innerHTML = head +
+        '<p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#0f172a">Passo 5 — Conectar o novo backend</p>' +
+        '<p style="margin:0;font-size:12px;line-height:1.5;color:#64748b">Por fim, conectamos o seu projeto ao Supabase novo e importamos os dados. Depois disso, seu projeto roda 100% no seu Supabase.</p>' +
+        migInfoBox("1. No Supabase novo: copie <b>Project URL</b> e a <b>anon key</b> (Project Settings → API).<br>2. No Lovable: abra as configurações do Supabase e cole os dois valores para conectar.<br>3. Importe o arquivo exportado no seu Supabase (Database → import), ou peça ajuda ao suporte se precisar.<br>4. Pronto — seu projeto agora usa o seu próprio Supabase.", "ok") +
+        migActionBtn("mig-open-connect", "↗ Abrir conexão Supabase no Lovable") +
+        migInfoBox("Depois de conferir que tudo migrou, você pode remover o Lovable Cloud antigo (Advanced settings → Remove) para parar de pagar por ele.") +
+        migNavButtons(5);
+      body.querySelector("#mig-open-connect").addEventListener("click", function () {
+        var pid = migrationState.projectId;
+        migOpenTab(pid ? ("https://lovable.dev/projects/" + pid + "/settings/supabase") : "https://lovable.dev/");
+      });
+      body.querySelector("#mig-back").addEventListener("click", function () { renderMigrationStep(4); });
+      body.querySelector("#mig-next").addEventListener("click", function () {
+        body.innerHTML = migStepBar(5) +
+          '<div style="text-align:center;padding:12px 6px">' +
+            '<div style="width:52px;height:52px;margin:4px auto 14px;border-radius:14px;background:#f0fdf4;display:grid;place-items:center;color:#166534">' +
+              '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>' +
+            "</div>" +
+            '<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#0f172a">Migração concluída</p>' +
+            '<p style="margin:0;font-size:13px;line-height:1.55;color:#475569">Seu projeto agora usa o seu próprio Supabase. Por segurança, você pode revogar o token do GitHub e remover o Lovable Cloud antigo quando confirmar que está tudo certo.</p>' +
+          "</div>" +
+          '<div style="display:flex;justify-content:flex-end;margin-top:12px"><button type="button" id="mig-done" style="border:none;border-radius:10px;padding:10px 18px;background:linear-gradient(135deg,#00a8ff,#0078ff);color:#fff;font-size:13px;font-weight:800;cursor:pointer">Fechar</button></div>';
+        var d = body.querySelector("#mig-done");
+        if (d) d.addEventListener("click", function () { migrationState = null; closeCenteredModal(); });
+      });
+    }
+  }
+
+  function openMigrationWizard() {
+    migrationState = {};
+    var modal = openCenteredModal("Migrar Cloud → Supabase", '<div class="ts-modal-body-inner"></div>');
+    if (!modal) return;
+    renderMigrationStep(1);
+    var backdrop = document.getElementById(MODAL_ID + "-backdrop");
+    if (backdrop) {
+      var closeBtn = backdrop.querySelector(".ts-modal-close");
+      if (closeBtn) closeBtn.addEventListener("click", function () { migrationState = null; });
+      backdrop.addEventListener("click", function (e) { if (e.target === backdrop) migrationState = null; });
+    }
+  }
+
 
   function openShortcutsModal() {
     const list = (promptTemplates && promptTemplates.length) ? promptTemplates : [];
@@ -3199,6 +3549,8 @@
   } catch (_) {}
 
   // ===================== Update badge polling =====================
+  // update-check.js already polls the server every 20s; here we just read
+  // the flag it writes and keep the visual indicator in sync.
   try {
     setTimeout(() => { refreshUpdateBadge(); }, 1500);
     setInterval(() => { refreshUpdateBadge(); }, 20000);

@@ -32,7 +32,7 @@
   var FETCH_TIMEOUT = 8000;
 
   // ---- Estado em memória ----
-  var current = null;
+  var current = null; // último config aplicado
   var pollTimer = null;
 
   // ---------- helpers de cache ----------
@@ -58,11 +58,16 @@
   }
 
   // ---------- aplicação da config ----------
+  // Publica a config num global lido pelo resto da extensão e
+  // dispara um evento para quem quiser reagir dinamicamente.
   function applyConfig(cfg, opts) {
     if (!cfg) return;
     current = cfg;
-    try { window.UEDA_REMOTE_CONFIG = cfg; } catch (_) {}
+    try {
+      window.UEDA_REMOTE_CONFIG = cfg;
+    } catch (_) {}
 
+    // Helpers convenientes para o resto do código consumir:
     try {
       window.uedaFlag = function (name, fallback) {
         var f = (cfg.flags || {})[name];
@@ -77,16 +82,23 @@
         var t = (cfg.texts || {})[loc] || {};
         return t[key];
       };
-      window.uedaLink = function (name) { return (cfg.links || {})[name]; };
+      window.uedaLink = function (name) {
+        return (cfg.links || {})[name];
+      };
     } catch (_) {}
 
     try {
-      window.dispatchEvent(new CustomEvent("ueda:remote-config", { detail: cfg }));
+      window.dispatchEvent(
+        new CustomEvent("ueda:remote-config", { detail: cfg })
+      );
     } catch (_) {}
 
+    // Reajusta o intervalo de polling se o servidor mandou um novo.
     var poll = (cfg.params && cfg.params.poll_interval_ms) || DEFAULT_POLL_MS;
     restartPolling(poll);
 
+    // Se veio de um fetch fresco e a versão subiu vs. o que estava
+    // em cache antes, oferece o toast (a menos que seja o boot).
     if (opts && opts.notifyIfNewer && opts.previousVersion != null) {
       if ((cfg.config_version || 0) > opts.previousVersion) {
         showUpdateToast(cfg);
@@ -96,8 +108,13 @@
 
   // ---------- fetch ----------
   function fetchJson(url, options) {
-    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = controller ? setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT) : null;
+    var controller =
+      typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = controller
+      ? setTimeout(function () {
+          controller.abort();
+        }, FETCH_TIMEOUT)
+      : null;
     var opts = Object.assign({ cache: "no-store" }, options || {});
     if (controller) opts.signal = controller.signal;
     return fetch(url, opts).then(function (resp) {
@@ -120,12 +137,16 @@
     };
   }
 
+  // API própria primeiro; Supabase REST como fallback.
   function fetchRemote() {
     return fetchJson(API_ENDPOINT + "?t=" + Date.now())
       .then(normalize)
       .catch(function () {
         return fetchJson(REST_ENDPOINT + "&t=" + Date.now(), {
-          headers: { apikey: SUPABASE_ANON, Authorization: "Bearer " + SUPABASE_ANON },
+          headers: {
+            apikey: SUPABASE_ANON,
+            Authorization: "Bearer " + SUPABASE_ANON,
+          },
         }).then(normalize);
       });
   }
@@ -135,17 +156,25 @@
     return fetchRemote()
       .then(function (cfg) {
         if (!cfg) return;
+        // Ignora fallback "stale" (config_version 0) se já temos algo melhor.
         if (cfg.config_version === 0 && previousVersion > 0) return;
         saveCache(cfg);
-        applyConfig(cfg, { notifyIfNewer: !isBoot, previousVersion: previousVersion });
+        applyConfig(cfg, {
+          notifyIfNewer: !isBoot,
+          previousVersion: previousVersion,
+        });
       })
-      .catch(function () {});
+      .catch(function () {
+        /* mantém cache atual em silêncio */
+      });
   }
 
   // ---------- polling ----------
   function restartPolling(intervalMs) {
     if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(function () { check(false); }, Math.max(5000, intervalMs || DEFAULT_POLL_MS));
+    pollTimer = setInterval(function () {
+      check(false);
+    }, Math.max(5000, intervalMs || DEFAULT_POLL_MS));
   }
 
   // ---------- toast não-bloqueante ----------
@@ -185,14 +214,23 @@
 
   function showUpdateToast(cfg) {
     if (!document.body) {
-      document.addEventListener("DOMContentLoaded", function () { showUpdateToast(cfg); }, { once: true });
+      document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+          showUpdateToast(cfg);
+        },
+        { once: true }
+      );
       return;
     }
     injectToastStyles();
     dismissToast();
 
-    var title = (window.uedaText && window.uedaText("update_available")) || "Nova configuração disponível";
-    var action = (window.uedaText && window.uedaText("update_action")) || "Atualizar";
+    var title =
+      (window.uedaText && window.uedaText("update_available")) ||
+      "Nova configuração disponível";
+    var action =
+      (window.uedaText && window.uedaText("update_action")) || "Atualizar";
 
     var el = document.createElement("div");
     el.id = "__ueda_rc_toast";
@@ -205,8 +243,13 @@
     el.querySelector(".__go").textContent = action;
 
     el.querySelector(".__go").addEventListener("click", function () {
-      try { applyConfig(cfg); } catch (_) {}
+      // "Atualizar" = re-aplicar config e recarregar só a UI da extensão.
+      try {
+        applyConfig(cfg);
+      } catch (_) {}
       dismissToast();
+      // Recarrega apenas a página da própria extensão (sidepanel),
+      // nunca a aba do usuário.
       try {
         if (location.protocol === "chrome-extension:") location.reload();
       } catch (_) {}
@@ -214,7 +257,9 @@
     el.querySelector(".__x").addEventListener("click", dismissToast);
 
     document.body.appendChild(el);
-    requestAnimationFrame(function () { el.classList.add("__visible"); });
+    requestAnimationFrame(function () {
+      el.classList.add("__visible");
+    });
   }
 
   // ---------- sincronização entre contextos ----------
@@ -231,29 +276,39 @@
   } catch (_) {}
 
   // ---------- boot ----------
+  // 1) cache síncrono imediato
   var cached = readCacheSync();
   if (cached) applyConfig(cached, { notifyIfNewer: false });
 
+  // 2) também tenta o chrome.storage.local (compartilhado)
   try {
     if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
       chrome.storage.local.get([CACHE_KEY], function (res) {
         var s = res && res[CACHE_KEY];
         if (s && !cached) applyConfig(s, { notifyIfNewer: false });
-        check(true);
+        check(true); // primeira busca fresca é boot (não notifica)
       });
     } else {
       check(true);
     }
-  } catch (_) { check(true); }
+  } catch (_) {
+    check(true);
+  }
 
+  // 3) revalidação em foco / visibilidade
   try {
-    window.addEventListener("focus", function () { check(false); });
+    window.addEventListener("focus", function () {
+      check(false);
+    });
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) check(false);
     });
   } catch (_) {}
 
+  // Expor um método manual de refresh, se algum botão quiser usar.
   try {
-    window.uedaRefreshConfig = function () { return check(false); };
+    window.uedaRefreshConfig = function () {
+      return check(false);
+    };
   } catch (_) {}
 })();

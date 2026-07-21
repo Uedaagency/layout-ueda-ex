@@ -170,7 +170,7 @@ function ExtensionPreview() {
                 .then((blob) => {
                   const a = document.createElement("a");
                   a.href = URL.createObjectURL(blob);
-                  a.download = "UEDA EX 5.2.1.zip";
+                  a.download = "UEDA EX 5.2.2.zip";
                   document.body.appendChild(a);
                   a.click();
                   a.remove();
@@ -179,7 +179,7 @@ function ExtensionPreview() {
             }}
             className="inline-flex items-center gap-2 rounded-lg bg-[#009FE3] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#009FE3]/30 hover:bg-[#0088c2]"
           >
-            ⬇ Baixar UEDA EX 5.2.1
+            ⬇ Baixar UEDA EX 5.2.2
           </button>
           <button
             type="button"

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "UEDA EX",
-  "version": "5.2.1",
+  "version": "5.2.2",
   "description": "Extensão premium com validação de licença, modo plano e automação inteligente.",
   "permissions": [
     "storage",
