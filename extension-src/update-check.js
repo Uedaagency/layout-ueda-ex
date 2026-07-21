@@ -73,13 +73,19 @@
 
   function openDownload(url) {
     const target = url || DOWNLOAD_ENDPOINT;
+    // Preferência: pedir ao background (que tem acesso a chrome.tabs) para
+    // abrir a aba de download. O content script/overlay não tem esse acesso,
+    // e é por isso que antes a URL "piscava" e nada acontecia.
     try {
-      if (chrome && chrome.tabs && chrome.tabs.create) {
-        chrome.tabs.create({ url: target, active: true });
-        return;
-      }
+      chrome.runtime.sendMessage({ action: "openUpdateDownload", url: target }, (resp) => {
+        if (chrome.runtime.lastError || !resp || !resp.ok) {
+          // Fallback: tenta abrir direto (último recurso).
+          try { window.open(target, "_blank", "noopener,noreferrer"); } catch (_) { try { location.href = target; } catch (__) {} }
+        }
+      });
+      return;
     } catch (_) {}
-    try { window.open(target, "_blank", "noopener,noreferrer"); } catch (_) { location.href = target; }
+    try { window.open(target, "_blank", "noopener,noreferrer"); } catch (_) { try { location.href = target; } catch (__) {} }
   }
 
   function renderBlock(info) {
@@ -319,6 +325,8 @@
   document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
 
   // ---- Manual check (used by the "Atualizar" button in the floating menu) ----
+  // Runs a fresh check against exlovable.uedaagency.com.br and reports back
+  // the installed vs. latest version so the UI can show the right message.
   try {
     window.uedaForceUpdateCheck = function (callback) {
       check()

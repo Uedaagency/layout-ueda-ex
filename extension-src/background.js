@@ -222,6 +222,59 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
+  if (msg && msg.action === "openUpdateDownload") {
+    // O botão de atualização roda no content script/overlay, que não tem
+    // acesso a chrome.tabs. O background tem — abre a aba de download aqui.
+    try {
+      chrome.tabs.create({ url: msg.url || EXT_DOWNLOAD_ENDPOINT, active: true });
+      sendResponse({ ok: true });
+    } catch (e) {
+      sendResponse({ ok: false, error: String(e) });
+    }
+    return true;
+  }
+
+  if (msg && msg.action === "detectSupabaseConfig") {
+    // Detecta os dados PÚBLICOS do Supabase do projeto Lovable aberto:
+    // Supabase URL e publishable/anon key. Esses valores ficam no código do
+    // frontend (client.ts / .env) porque o app precisa deles no navegador —
+    // são públicos por natureza. NÃO inclui service_role (chave-mestra), que
+    // o Lovable mantém protegida e não é exposta no source-code.
+    (async function () {
+      try {
+        var apiUrl = "https://lovable-api.com/projects/" + msg.projectId + "/source-code";
+        var resp = await fetch(apiUrl, {
+          method: "GET",
+          headers: { "Authorization": "Bearer " + msg.token, "Accept": "application/json" },
+        });
+        if (!resp.ok) { sendResponse({ ok: false, error: "API retornou " + resp.status }); return; }
+        var data = await resp.json();
+        var files = data.files || [];
+        var url = null, anonKey = null, ref = null;
+        // A URL do Supabase aparece como https://<ref>.supabase.co, geralmente
+        // em VITE_SUPABASE_URL / SUPABASE_URL. Nunca é uma URL lovable.dev.
+        var urlRe = /https:\/\/([a-z0-9]{15,})\.supabase\.co/i;
+        var envUrlRe = /(?:VITE_)?SUPABASE_URL["'\s:=]+["']?(https:\/\/[a-z0-9]{15,}\.supabase\.co)/i;
+        var keyRe = /(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,})/;
+        var sbKeyRe = /(sb_publishable_[A-Za-z0-9_-]{10,})/;
+        for (var i = 0; i < files.length; i++) {
+          var content = (files[i] && (files[i].content || files[i].contents)) || "";
+          if (!content) continue;
+          // 1ª prioridade: variável de ambiente explícita do Supabase.
+          if (!url) { var me = content.match(envUrlRe); if (me) { url = me[1]; var mref = url.match(urlRe); ref = mref ? mref[1] : null; } }
+          // 2ª: qualquer URL .supabase.co no conteúdo (fallback).
+          if (!url) { var mu = content.match(urlRe); if (mu) { url = mu[0]; ref = mu[1]; } }
+          if (!anonKey) { var mk = content.match(sbKeyRe) || content.match(keyRe); if (mk) anonKey = mk[1]; }
+          if (url && anonKey) break;
+        }
+        sendResponse({ ok: true, url: url, ref: ref, publishableKey: anonKey, projectId: msg.projectId });
+      } catch (err) {
+        sendResponse({ ok: false, error: (err && err.message) || "Falha ao detectar" });
+      }
+    })();
+    return true;
+  }
+
   if (extUpdateState.blocked) {
     sendResponse({ ok: false, success: false, update_required: true, error: "Atualização obrigatória disponível. Atualize a extensão para continuar." });
     return true;
