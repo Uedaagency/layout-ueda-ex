@@ -9,6 +9,8 @@ import {
   User,
   MessageSquare,
   Wrench,
+  CloudUpload,
+  Lock,
   X,
   type LucideIcon,
 } from "lucide-react";
