@@ -9,6 +9,8 @@ import {
   User,
   MessageSquare,
   Wrench,
+  CloudUpload,
+  Lock,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -454,16 +456,16 @@ function FixedPreview({ srcDoc }: { srcDoc: string }) {
    FLOATING: pulsing logo → icon rail → expandable to names
    Tabs (Prompt/Skills/Histórico) and user icon open glass popups
 ============================================================ */
-type FloatingTab = null | "prompt" | "skills" | "history" | "user" | "optimize" | "insert-skill" | "new-project" | "download" | "remove-watermark" | "shortcuts";
+type FloatingTab = null | "prompt" | "skills" | "history" | "user" | "optimize" | "insert-skill" | "new-project" | "download" | "remove-watermark" | "shortcuts" | "migrate-cloud";
 
-const RAIL_ITEMS: { id: Exclude<FloatingTab, null>; icon: LucideIcon; label: string }[] = [
+const RAIL_ITEMS: { id: Exclude<FloatingTab, null>; icon: LucideIcon; label: string; locked?: boolean }[] = [
   { id: "shortcuts", icon: Wrench, label: "Atalhos" },
-  { id: "optimize", icon: Zap, label: "Otimizar" },
+  { id: "optimize", icon: Zap, label: "Reescrever" },
   { id: "insert-skill", icon: Sparkles, label: "Inserir Skill" },
   { id: "new-project", icon: FilePlus2, label: "Criar projeto novo" },
   { id: "download", icon: Download, label: "Baixar projeto" },
+  { id: "migrate-cloud", icon: CloudUpload, label: "Migrar Cloud", locked: true },
   { id: "remove-watermark", icon: Eraser, label: "Remover marca d'água" },
-  { id: "history", icon: MessageSquare, label: "Histórico" },
   { id: "user", icon: User, label: "Usuário" },
 ];
 
@@ -543,7 +545,7 @@ function FloatingPreview() {
                 key={it.id}
                 type="button"
                 onClick={() => setActiveTab(active ? null : it.id)}
-                className="flex h-9 w-9 items-center justify-center rounded-full transition"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full transition"
                 style={{
                   background: active ? "#fff" : "transparent",
                   color: active ? "#0f2a42" : "rgba(255,255,255,0.85)",
@@ -552,6 +554,14 @@ function FloatingPreview() {
                 title={it.label}
               >
                 <it.icon size={15} strokeWidth={1.9} />
+                {it.locked && (
+                  <span
+                    className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full"
+                    style={{ background: "#0f2a42", border: "1px solid rgba(255,255,255,0.4)" }}
+                  >
+                    <Lock size={7} strokeWidth={2.5} color="#fff" />
+                  </span>
+                )}
               </button>
             );
           })}
@@ -612,19 +622,21 @@ function TabPopup({ tab, onClose }: { tab: Exclude<FloatingTab, null>; onClose: 
     skills: "Skills",
     history: "Histórico",
     user: "Magda",
-    optimize: "Otimizar",
+    optimize: "Reescrever",
     "insert-skill": "Inserir Skill",
     "new-project": "Criar projeto novo",
     download: "Baixar projeto",
     "remove-watermark": "Remover marca d'água",
     shortcuts: "Atalhos",
+    "migrate-cloud": "Migrar Cloud",
   };
   const descriptions: Partial<Record<Exclude<FloatingTab, null>, string>> = {
-    optimize: "Analisa o projeto e sugere melhorias de performance, código e UX.",
+    optimize: "Reescreve e melhora o prompt atual mantendo a intenção original.",
     "insert-skill": "Adiciona uma skill personalizada ao contexto do agente.",
     "new-project": "Cria um novo projeto em branco com a estrutura padrão.",
     download: "Baixa o projeto atual como um arquivo .zip.",
     "remove-watermark": "Remove marcas d'água aplicadas pela extensão.",
+    "migrate-cloud": "Disponível para planos com mais de 30 dias. Migre seu projeto para a Cloud oficial.",
   };
   return (
     <div>
