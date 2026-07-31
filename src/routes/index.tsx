@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   Zap,
@@ -202,7 +202,14 @@ function ExtensionPreview() {
           >
             ⬇ Baixar código-fonte (sem ofuscação)
           </button>
+          <Link
+            to="/revendedores"
+            className="inline-flex items-center gap-2 rounded-lg border border-[#e0393e] bg-[#e0393e]/15 px-6 py-3 text-sm font-semibold text-white hover:bg-[#e0393e]/25"
+          >
+            🎨 Página Revendedores
+          </Link>
         </div>
+
 
       </div>
     </div>
