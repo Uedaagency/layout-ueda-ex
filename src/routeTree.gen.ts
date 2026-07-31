@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RevendedoresRouteImport } from './routes/revendedores'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicRemoteConfigRouteImport } from './routes/api/public/remote-config'
 
+const RevendedoresRoute = RevendedoresRouteImport.update({
+  id: '/revendedores',
+  path: '/revendedores',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -25,32 +31,43 @@ const ApiPublicRemoteConfigRoute = ApiPublicRemoteConfigRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/revendedores': typeof RevendedoresRoute
   '/api/public/remote-config': typeof ApiPublicRemoteConfigRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/revendedores': typeof RevendedoresRoute
   '/api/public/remote-config': typeof ApiPublicRemoteConfigRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/revendedores': typeof RevendedoresRoute
   '/api/public/remote-config': typeof ApiPublicRemoteConfigRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/remote-config'
+  fullPaths: '/' | '/revendedores' | '/api/public/remote-config'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/remote-config'
-  id: '__root__' | '/' | '/api/public/remote-config'
+  to: '/' | '/revendedores' | '/api/public/remote-config'
+  id: '__root__' | '/' | '/revendedores' | '/api/public/remote-config'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  RevendedoresRoute: typeof RevendedoresRoute
   ApiPublicRemoteConfigRoute: typeof ApiPublicRemoteConfigRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/revendedores': {
+      id: '/revendedores'
+      path: '/revendedores'
+      fullPath: '/revendedores'
+      preLoaderRoute: typeof RevendedoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  RevendedoresRoute: RevendedoresRoute,
   ApiPublicRemoteConfigRoute: ApiPublicRemoteConfigRoute,
 }
 export const routeTree = rootRouteImport
