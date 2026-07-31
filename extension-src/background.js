@@ -222,59 +222,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
-  if (msg && msg.action === "openUpdateDownload") {
-    // O botão de atualização roda no content script/overlay, que não tem
-    // acesso a chrome.tabs. O background tem — abre a aba de download aqui.
-    try {
-      chrome.tabs.create({ url: msg.url || EXT_DOWNLOAD_ENDPOINT, active: true });
-      sendResponse({ ok: true });
-    } catch (e) {
-      sendResponse({ ok: false, error: String(e) });
-    }
-    return true;
-  }
-
-  if (msg && msg.action === "detectSupabaseConfig") {
-    // Detecta os dados PÚBLICOS do Supabase do projeto Lovable aberto:
-    // Supabase URL e publishable/anon key. Esses valores ficam no código do
-    // frontend (client.ts / .env) porque o app precisa deles no navegador —
-    // são públicos por natureza. NÃO inclui service_role (chave-mestra), que
-    // o Lovable mantém protegida e não é exposta no source-code.
-    (async function () {
-      try {
-        var apiUrl = "https://lovable-api.com/projects/" + msg.projectId + "/source-code";
-        var resp = await fetch(apiUrl, {
-          method: "GET",
-          headers: { "Authorization": "Bearer " + msg.token, "Accept": "application/json" },
-        });
-        if (!resp.ok) { sendResponse({ ok: false, error: "API retornou " + resp.status }); return; }
-        var data = await resp.json();
-        var files = data.files || [];
-        var url = null, anonKey = null, ref = null;
-        // A URL do Supabase aparece como https://<ref>.supabase.co, geralmente
-        // em VITE_SUPABASE_URL / SUPABASE_URL. Nunca é uma URL lovable.dev.
-        var urlRe = /https:\/\/([a-z0-9]{15,})\.supabase\.co/i;
-        var envUrlRe = /(?:VITE_)?SUPABASE_URL["'\s:=]+["']?(https:\/\/[a-z0-9]{15,}\.supabase\.co)/i;
-        var keyRe = /(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,})/;
-        var sbKeyRe = /(sb_publishable_[A-Za-z0-9_-]{10,})/;
-        for (var i = 0; i < files.length; i++) {
-          var content = (files[i] && (files[i].content || files[i].contents)) || "";
-          if (!content) continue;
-          // 1ª prioridade: variável de ambiente explícita do Supabase.
-          if (!url) { var me = content.match(envUrlRe); if (me) { url = me[1]; var mref = url.match(urlRe); ref = mref ? mref[1] : null; } }
-          // 2ª: qualquer URL .supabase.co no conteúdo (fallback).
-          if (!url) { var mu = content.match(urlRe); if (mu) { url = mu[0]; ref = mu[1]; } }
-          if (!anonKey) { var mk = content.match(sbKeyRe) || content.match(keyRe); if (mk) anonKey = mk[1]; }
-          if (url && anonKey) break;
-        }
-        sendResponse({ ok: true, url: url, ref: ref, publishableKey: anonKey, projectId: msg.projectId });
-      } catch (err) {
-        sendResponse({ ok: false, error: (err && err.message) || "Falha ao detectar" });
-      }
-    })();
-    return true;
-  }
-
   if (extUpdateState.blocked) {
     sendResponse({ ok: false, success: false, update_required: true, error: "Atualização obrigatória disponível. Atualize a extensão para continuar." });
     return true;
@@ -632,4 +579,93 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
   })();
   return true;
+});
+
+// ============================================================
+// Atualização: baixa o .zip de verdade via chrome.downloads.
+// (update-check.js chama isto com a URL do pacote atual.)
+// ============================================================
+const UPD_DOWNLOAD_ENDPOINT = "https://exlovable.uedaagency.com.br/api/public/extension-download";
+const UPD_SUPABASE_URL  = "https://qpssaefptonzbpgcvtrq.supabase.co";
+const UPD_SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwc3NhZWZwdG9uemJwZ2N2dHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY4NTUsImV4cCI6MjA5OTUyMjg1NX0.rZVreithJxc4w3T4W45zXTyATai3yjYennoa4nU9Uu8";
+const UPD_RELEASES_REST = UPD_SUPABASE_URL + "/rest/v1/extension_releases?select=version,title,distribution_type,external_url,zip_url&is_current=eq.true&order=published_at.desc&limit=1";
+
+function updInstalledVersion() { try { return chrome.runtime.getManifest().version || "0"; } catch (_) { return "0"; } }
+function updCmpVer(a, b) {
+  const pa = String(a || "0").split(".").map(n => parseInt(n, 10) || 0);
+  const pb = String(b || "0").split(".").map(n => parseInt(n, 10) || 0);
+  const L = Math.max(pa.length, pb.length);
+  for (let i = 0; i < L; i++) { const x = pa[i] || 0, y = pb[i] || 0; if (x > y) return 1; if (x < y) return -1; }
+  return 0;
+}
+// Nome do arquivo: usa o nome do próprio .zip da URL; se não der, monta UEDA-EX-<versão>.zip
+function updFilenameFrom(url, version) {
+  try {
+    const p = new URL(url).pathname;
+    const base = decodeURIComponent(p.substring(p.lastIndexOf("/") + 1));
+    if (base && /\.zip$/i.test(base)) return base;
+  } catch (_) {}
+  return "UEDA-EX-" + String(version || "latest").replace(/[^0-9A-Za-z._-]/g, "") + ".zip";
+}
+async function updGetRelease() {
+  try {
+    const r = await fetch(UPD_RELEASES_REST + "&t=" + Date.now(), {
+      cache: "no-store",
+      headers: { apikey: UPD_SUPABASE_ANON, Authorization: "Bearer " + UPD_SUPABASE_ANON }
+    });
+    if (r.ok) {
+      const rows = await r.json();
+      const row = Array.isArray(rows) ? rows[0] : rows;
+      if (row) {
+        const url = row.download_url || (row.distribution_type === "external" ? row.external_url : row.zip_url) || UPD_DOWNLOAD_ENDPOINT;
+        return { version: row.version || null, url: url, filename: updFilenameFrom(url, row.version), title: row.title || "" };
+      }
+    }
+  } catch (_) {}
+  return { version: null, url: UPD_DOWNLOAD_ENDPOINT, filename: updFilenameFrom(UPD_DOWNLOAD_ENDPOINT, null), title: "" };
+}
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (!msg) return;
+
+  // Verifica versão (sem baixar): compara a instalada com a publicada.
+  if (msg.action === "checkUpdate") {
+    (async () => {
+      try {
+        const rel = await updGetRelease();
+        const installed = updInstalledVersion();
+        sendResponse({
+          ok: true,
+          installedVersion: installed,
+          latestVersion: rel.version,
+          hasUpdate: rel.version ? (updCmpVer(installed, rel.version) < 0) : false,
+          zipUrl: rel.url,
+          filename: rel.filename,
+          title: rel.title
+        });
+      } catch (_) { sendResponse({ ok: false }); }
+    })();
+    return true;
+  }
+
+  if (msg.action === "downloadUpdateZip") {
+    (async () => {
+      try {
+        let zipUrl = msg.url, version = msg.version || null, filename = msg.filename || null;
+        if (!zipUrl) { const r = await updGetRelease(); zipUrl = r.url; version = version || r.version; filename = filename || r.filename; }
+        if (!zipUrl) { sendResponse({ ok: false, error: "URL do pacote não encontrada." }); return; }
+        if (!filename) filename = updFilenameFrom(zipUrl, version);
+        chrome.downloads.download({ url: zipUrl, filename: filename, saveAs: false }, (downloadId) => {
+          if (chrome.runtime.lastError || typeof downloadId === "undefined") {
+            sendResponse({ ok: false, error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || "Falha no download." });
+          } else {
+            sendResponse({ ok: true, version: version, zipUrl: zipUrl, filename: filename, downloadId: downloadId });
+          }
+        });
+      } catch (err) {
+        sendResponse({ ok: false, error: (err && err.message) || "Erro ao baixar." });
+      }
+    })();
+    return true;
+  }
 });
