@@ -20,6 +20,13 @@
   }
 
   let sessionId = null, userName = null, expiresAt = null, licenseStatus = null, heartbeatInterval = null, deviceId = null, isResellerUser = false;
+  const QL_REVALIDATE_GRACE_MS = 6 * 60 * 60 * 1000; // 6 horas
+  const QL_DEFINITIVE_LOGOUT_REASONS = ["expired","revoked","suspended","cancelled","canceled","refunded","not_found","invalid_key","key_not_found","banned","blocked","disabled"];
+  function qlIsDefinitiveInvalid(data){
+    const reason = String((data && data.reason) || "").toLowerCase();
+    return QL_DEFINITIVE_LOGOUT_REASONS.indexOf(reason) !== -1;
+  }
+  function qlMarkValidated(){ try { chrome.storage.local.set({ ql_last_ok_validate: Date.now() }); } catch(_){} }
   let spIsRecording = false;
   let spAttachedFiles = [];
   let spActiveTab = 'prompt';
@@ -979,7 +986,7 @@ if (notifClose) {
 licenseType = data.license_type || 'paid';
 licenseLifetime = data.lifetime || false;
 licenseKey = key;
-        chrome.storage.local.set({ ql_license_valid: true, ql_license_key: key, ql_session_id: data.session_id, ql_user_name: data.user_name || null, ql_expires_at: data.expires_at || null, ql_activated_at: data.activated_at || null, ql_license_status: data.status || null, ql_license_lifetime: licenseLifetime, ql_license_type: data.license_type || 'paid', tsExtensionLayoutMode: 'popup', tsModeChoicePending: true }, () => {
+        chrome.storage.local.set({ ql_license_valid: true, ql_license_key: key, ql_session_id: data.session_id, ql_user_name: data.user_name || null, ql_expires_at: data.expires_at || null, ql_activated_at: data.activated_at || null, ql_license_status: data.status || null, ql_license_lifetime: licenseLifetime, ql_license_type: data.license_type || 'paid', ql_last_ok_validate: Date.now(), tsExtensionLayoutMode: 'popup', tsModeChoicePending: true }, () => {
           log.className = 'sp-log sp-log-success'; log.textContent = '✓ ' + data.message;
           startHeartbeat(key);
           setTimeout(() => { showModeChooser(); }, 600);
@@ -2425,11 +2432,16 @@ licenseKey = key;
         }
         const data = await bgFetch(VALIDATE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ license_key: key, session_id: sessionId, heartbeat: true, device_id: deviceId }) });
         if(!data.valid) {
-          clearInterval(heartbeatInterval);
-          chrome.storage.local.remove(["ql_license_valid","ql_license_key","ql_session_id","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status"], () => showLicenseGate());
-          if(data.reason === 'device_conflict') setTimeout(() => showAlert('Acesso Negado', data.message), 500);
+          if(qlIsDefinitiveInvalid(data)) {
+            clearInterval(heartbeatInterval);
+            chrome.storage.local.remove(["ql_license_valid","ql_license_key","ql_session_id","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_last_ok_validate"], () => showLicenseGate());
+            if(data.message) setTimeout(() => showAlert('Acesso Negado', data.message), 500);
+            return;
+          }
+          console.warn("[UEDA] heartbeat não-definitivo ignorado:", data && data.reason);
           return;
         }
+        qlMarkValidated();
         if(data.user_name) { userName = data.user_name; const el = document.getElementById('sp-name'); if(el) el.textContent = data.user_name; }
         if(data.expires_at) expiresAt = data.expires_at;
         if(data.status) licenseStatus = data.status;
@@ -2555,7 +2567,7 @@ licenseKey = key;
         var sd = await new Promise(function(r){ chrome.storage.local.get(['lovable_token','lovable_token_global','lovable_projectId'], r); });
         var authToken = (sd.lovable_token || sd.lovable_token_global || '').replace(/^Bearer\s+/i,'');
         var projectId = sd.lovable_projectId || '';
-        if (!projectId) throw new Error('Abra uma página de projeto do Lovable primeiro.');
+        if (!projectId) throw new Error('Abra uma página de projeto do Lovable SORAXiro.');
 
         if (!authToken) {
           var cookieResponse = await new Promise(function(resolve) {
@@ -2646,7 +2658,7 @@ licenseKey = key;
       document.body.classList.toggle('sp-light', !savedDark);
       syncThemeButton();
     });
-    chrome.storage.local.get(["ql_license_valid","ql_license_key","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_license_type","ql_license_lifetime","ql_session_id","tsModeChoicePending"], async (res) => {
+    chrome.storage.local.get(["ql_license_valid","ql_license_key","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_license_type","ql_license_lifetime","ql_session_id","tsModeChoicePending","ql_last_ok_validate"], async (res) => {
       if(res.ql_license_valid) {
         licenseKey = res.ql_license_key || null;
         licenseType = res.ql_license_type || 'paid';
@@ -2657,10 +2669,12 @@ licenseKey = key;
         sessionId = res.ql_session_id || null;
         if (res.tsModeChoicePending) showModeChooser();
         else showMainUI();
-        if(res.ql_license_key) {
+        const spWithinGrace = (Date.now() - (res.ql_last_ok_validate || 0)) < QL_REVALIDATE_GRACE_MS;
+        if(res.ql_license_key && !spWithinGrace) {
           try {
             const data = await bgFetch(VALIDATE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ license_key: res.ql_license_key, session_id: sessionId, heartbeat: true, device_id: deviceId }) });
             if(data.valid) {
+              qlMarkValidated();
               userName = data.user_name || userName;
 expiresAt = data.expires_at || expiresAt;
 licenseStatus = data.status || licenseStatus;
@@ -2678,10 +2692,12 @@ sessionId = data.session_id || sessionId;
 });
               const nameEl = document.getElementById('sp-name'); if(nameEl) nameEl.textContent = userName || 'User';
               updateCountdown();
-            } else {
-              chrome.storage.local.remove(["ql_license_valid","ql_license_key","ql_session_id","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status"]);
+            } else if(qlIsDefinitiveInvalid(data)) {
+              chrome.storage.local.remove(["ql_license_valid","ql_license_key","ql_session_id","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_last_ok_validate"]);
               showLicenseGate();
-              if(data.reason === 'device_conflict') setTimeout(() => showAlert('Acesso Negado', data.message), 500);
+              if(data.message) setTimeout(() => showAlert('Acesso Negado', data.message), 500);
+            } else {
+              console.warn("[UEDA] revalidação não-definitiva ignorada:", data && data.reason);
             }
           } catch(e) {}
         }

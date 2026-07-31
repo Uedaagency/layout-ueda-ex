@@ -73,19 +73,21 @@
 
   function openDownload(url) {
     const target = url || DOWNLOAD_ENDPOINT;
-    // Preferência: pedir ao background (que tem acesso a chrome.tabs) para
-    // abrir a aba de download. O content script/overlay não tem esse acesso,
-    // e é por isso que antes a URL "piscava" e nada acontecia.
+    // Preferência: baixar o .zip direto (chrome.downloads via background).
     try {
-      chrome.runtime.sendMessage({ action: "openUpdateDownload", url: target }, (resp) => {
-        if (chrome.runtime.lastError || !resp || !resp.ok) {
-          // Fallback: tenta abrir direto (último recurso).
-          try { window.open(target, "_blank", "noopener,noreferrer"); } catch (_) { try { location.href = target; } catch (__) {} }
-        }
+      chrome.runtime.sendMessage({ action: "downloadUpdateZip", url: target }, (dl) => {
+        if (chrome.runtime && chrome.runtime.lastError) { fallbackOpen(target); return; }
+        if (!dl || !dl.ok) fallbackOpen(target);
       });
       return;
     } catch (_) {}
-    try { window.open(target, "_blank", "noopener,noreferrer"); } catch (_) { try { location.href = target; } catch (__) {} }
+    fallbackOpen(target);
+  }
+  function fallbackOpen(target) {
+    try {
+      if (chrome && chrome.tabs && chrome.tabs.create) { chrome.tabs.create({ url: target, active: true }); return; }
+    } catch (_) {}
+    try { window.open(target, "_blank", "noopener,noreferrer"); } catch (_) { location.href = target; }
   }
 
   function renderBlock(info) {
@@ -109,7 +111,7 @@
     el.innerHTML = `
       <div class="lp-shell">
         <div class="lp-top">
-          <div class="lp-brand"><span class="lp-mark">↻</span><span>UEDA</span></div>
+          <div class="lp-brand"><span class="lp-mark">↻</span><span>Sorax</span></div>
           <span class="lp-status">Bloqueado</span>
         </div>
         <section class="lp-card" aria-live="polite">
@@ -153,7 +155,6 @@
       chrome.storage.local.set({
         lp_update_blocked: false,
         lp_force_update: false,
-        lp_update_available: false,
         lp_latest_version: null,
         lp_download_url: null,
         lp_update_title: null,
@@ -184,14 +185,12 @@
       return;
     }
     const installed = getInstalledVersion();
-    const available = compareVersions(installed, data.version) < 0;
     const blocked = !!data.force_update && compareVersions(installed, data.version) !== 0;
     try {
       chrome.storage.local.set({
         lp_latest_version: data.version,
         lp_force_update: !!data.force_update,
         lp_update_blocked: blocked,
-        lp_update_available: available,
         lp_download_url: data.download_url,
         lp_update_title: data.title,
         lp_update_changelog: data.changelog,
@@ -323,37 +322,4 @@
 
   window.addEventListener("focus", check);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
-
-  // ---- Manual check (used by the "Atualizar" button in the floating menu) ----
-  // Runs a fresh check against exlovable.uedaagency.com.br and reports back
-  // the installed vs. latest version so the UI can show the right message.
-  try {
-    window.uedaForceUpdateCheck = function (callback) {
-      check()
-        .then(() => {
-          try {
-            chrome.storage.local.get(
-              ["lp_latest_version", "lp_download_url", "lp_update_title", "lp_update_changelog", "lp_force_update"],
-              (state) => {
-                const installed = getInstalledVersion();
-                const latest = (state && state.lp_latest_version) || null;
-                const hasUpdate = !!latest && compareVersions(installed, latest) < 0;
-                callback({
-                  ok: true,
-                  installedVersion: installed,
-                  latestVersion: latest,
-                  hasUpdate,
-                  downloadUrl: (state && state.lp_download_url) || DOWNLOAD_ENDPOINT,
-                  title: state && state.lp_update_title,
-                  changelog: state && state.lp_update_changelog,
-                });
-              }
-            );
-          } catch (_) {
-            callback({ ok: false, installedVersion: getInstalledVersion() });
-          }
-        })
-        .catch(() => callback({ ok: false, installedVersion: getInstalledVersion() }));
-    };
-  } catch (_) {}
 })();

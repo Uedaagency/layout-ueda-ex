@@ -1,6 +1,14 @@
 
 
 const VALIDATE_URL = "https://qpssaefptonzbpgcvtrq.supabase.co/functions/v1/validate-license";
+// --- Anti-logout: evita deslogar o cliente ao atualizar/trocar de página ---
+const QL_REVALIDATE_GRACE_MS = 6 * 60 * 60 * 1000; // 6 horas
+const QL_DEFINITIVE_LOGOUT_REASONS = ["expired","revoked","suspended","cancelled","canceled","refunded","not_found","invalid_key","key_not_found","banned","blocked","disabled"];
+function qlIsDefinitiveInvalid(data){
+  const reason = String((data && data.reason) || "").toLowerCase();
+  return QL_DEFINITIVE_LOGOUT_REASONS.indexOf(reason) !== -1;
+}
+function qlMarkValidated(){ try { chrome.storage.local.set({ ql_last_ok_validate: Date.now() }); } catch(_){} }
 const OPTIMIZE_URL = "https://qpssaefptonzbpgcvtrq.supabase.co/functions/v1/optimize-prompt";
 const NOTIFICATIONS_URL = "https://qpssaefptonzbpgcvtrq.supabase.co/rest/v1/notifications?select=*&order=created_at.desc&limit=20";
 const PACKAGES_URL = "https://qpssaefptonzbpgcvtrq.supabase.co/rest/v1/packages?select=*&is_active=eq.true&order=sort_order.asc";
@@ -485,26 +493,8 @@ let qlChatHistory = [];
 let qLicenseKey = null;
 let qLicenseType = null;
 let qLicenseLifetime = false;
-let qLicenseDurationDays = null;
 const QL_HISTORY_KEY = 'ql_chat_history';
 const QL_MAX_HISTORY = 200;
-
-// Migração Cloud: liberada só para planos de 30 dias OU MAIS.
-// Lê duration_days que vem da validação de licença. Planos vitalícios
-// (lifetime) também têm acesso, pois valem "mais" que 30 dias.
-// Observação: esta checagem controla apenas a UI (mostrar/bloquear o
-// botão). A checagem que realmente protege roda no servidor de migração,
-// que revalida o plano antes de executar qualquer migração.
-const QL_MIGRATION_MIN_DAYS = 30;
-function podeUsarMigracao() {
-  try {
-    if (isLifetimeLicense()) return true;
-    var d = parseInt(qLicenseDurationDays, 10);
-    return !isNaN(d) && d >= QL_MIGRATION_MIN_DAYS;
-  } catch (_) {
-    return false;
-  }
-}
 
 function getDeviceId(){
   return getHardwareFingerprint();
@@ -535,7 +525,7 @@ function _buildFloatingUI(){
   box.style.left = initialLeft + "px";
   box.style.top = "80px";
 
-  chrome.storage.local.get(["ql_license_valid","ql_license_key","ql_minimized","ql_height","ql_dark_mode","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_license_type","ql_license_lifetime","ql_license_duration_days","ql_session_id"], async (res) => {
+  chrome.storage.local.get(["ql_license_valid","ql_license_key","ql_minimized","ql_height","ql_dark_mode","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_license_type","ql_license_lifetime","ql_session_id","ql_last_ok_validate"], async (res) => {
     qlMinimized = res.ql_minimized || false;
     qlHeight = res.ql_height || 520;
     qlDeviceId = await getDeviceId();
@@ -557,49 +547,38 @@ function _buildFloatingUI(){
       qLicenseKey = res.ql_license_key || null;
       qLicenseType = res.ql_license_type || 'paid';
       qLicenseLifetime = res.ql_license_lifetime || false;
-      qLicenseDurationDays = (typeof res.ql_license_duration_days !== 'undefined') ? res.ql_license_duration_days : null;
       qlSessionId = res.ql_session_id || null;
       showMainUI(box);
 
-      if(res.ql_license_key) {
+      const qlWithinGrace = (Date.now() - (res.ql_last_ok_validate || 0)) < QL_REVALIDATE_GRACE_MS;
+      if(res.ql_license_key && !qlWithinGrace) {
         fetch(VALIDATE_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ license_key: res.ql_license_key, session_id: res.ql_session_id, heartbeat: true, device_id: qlDeviceId })
         }).then(r => r.json()).then(data => {
           if(data.valid) {
+            qlMarkValidated();
             qlUserName = data.user_name || qlUserName;
             qlExpiresAt = data.expires_at || qlExpiresAt;
             qlActivatedAt = data.activated_at || qlActivatedAt;
             qLicenseStatus = data.status || qLicenseStatus;
             qLicenseType = data.license_type || 'paid';
             qLicenseLifetime = data.lifetime || false;
-            qLicenseDurationDays = (typeof data.duration_days !== 'undefined') ? data.duration_days : qLicenseDurationDays;
             qlSessionId = data.session_id || qlSessionId;
-            chrome.storage.local.set({ ql_user_name: qlUserName, ql_expires_at: qlExpiresAt, ql_activated_at: qlActivatedAt, ql_license_status: qLicenseStatus, ql_license_type: qLicenseType, ql_license_lifetime: qLicenseLifetime, ql_license_duration_days: qLicenseDurationDays, ql_session_id: qlSessionId });
+            chrome.storage.local.set({ ql_user_name: qlUserName, ql_expires_at: qlExpiresAt, ql_activated_at: qlActivatedAt, ql_license_status: qLicenseStatus, ql_license_type: qLicenseType, ql_license_lifetime: qLicenseLifetime, ql_session_id: qlSessionId });
             const nameEl = document.querySelector(".ql-profile-name");
             if(nameEl) nameEl.textContent = qlUserName || "User";
             updateTrialCountdown();
-          } else if(data.reason === "device_conflict") {
-            // Conflito de dispositivo (uso em outra máquina): desconecta para
-            // manter a proteção anti-compartilhamento.
-            chrome.storage.local.remove(["ql_license_valid","ql_license_key","ql_session_id","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status"]);
+          } else if(qlIsDefinitiveInvalid(data)) {
+            chrome.storage.local.remove(["ql_license_valid","ql_license_key","ql_session_id","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_last_ok_validate"]);
             const b = document.getElementById("ql-floating");
             if(b) showLicenseGate(b);
-            setTimeout(() => showCustomAlert("Acesso Negado", data.message), 500);
-          } else if(data.reason === "expired" || data.reason === "revoked" || data.reason === "invalid" || data.status === "expired" || data.status === "revoked") {
-            // Só desconecta quando o servidor diz EXPLICITAMENTE que a licença
-            // não vale mais (expirada, revogada ou inválida).
-            chrome.storage.local.remove(["ql_license_valid","ql_license_key","ql_session_id","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status"]);
-            const b = document.getElementById("ql-floating");
-            if(b) showLicenseGate(b);
+            if(data.message) setTimeout(() => showCustomAlert("Acesso Negado", data.message), 500);
+          } else {
+            console.warn("[UEDA] revalidação não-definitiva ignorada:", data && data.reason);
           }
-          // Qualquer outro caso (resposta ambígua, sem reason claro, servidor
-          // instável): NÃO desconecta. Mantém o cliente logado com os dados
-          // que já estão salvos. A revalidação tenta de novo no próximo ciclo.
-        }).catch(() => {
-          // Falha de rede: NÃO desconecta. O cliente continua logado.
-        });
+        }).catch(() => {});
       }
     } else {
       showLicenseGate(box);
@@ -651,10 +630,10 @@ async function validateLicense(){
       qLicenseStatus = data.status;
       qLicenseType = data.license_type || 'paid';
       qLicenseLifetime = data.lifetime || false;
-      qLicenseDurationDays = (typeof data.duration_days !== 'undefined') ? data.duration_days : qLicenseDurationDays;
       qLicenseKey = key;
       qlOnlineCount = data.online_count || 0;
 
+      qlMarkValidated();
       chrome.storage.local.set({
   ql_license_valid: true,
   ql_license_key: key,
@@ -664,8 +643,7 @@ async function validateLicense(){
   ql_activated_at: data.activated_at || null,
   ql_license_status: data.status || null,
   ql_license_type: qLicenseType,
-  ql_license_lifetime: qLicenseLifetime,
-  ql_license_duration_days: qLicenseDurationDays
+  ql_license_lifetime: qLicenseLifetime
 }, () => {
         if(log){ log.className = "ql-log-success"; log.innerText = "✓ " + data.message; }
         setTimeout(() => {
@@ -1356,15 +1334,20 @@ function startHeartbeat(licenseKey){
       });
 
       if(!data.valid){
-        clearInterval(qlHeartbeatInterval);
-        const msg = data.reason === "device_conflict" ? data.message : null;
-        chrome.storage.local.remove(["ql_license_valid","ql_license_key","ql_session_id","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status"], () => {
-          const box = document.getElementById("ql-floating");
-          if(box) showLicenseGate(box);
-          if(msg) setTimeout(() => showCustomAlert("Acesso Negado", msg), 500);
-        });
+        if(qlIsDefinitiveInvalid(data)){
+          clearInterval(qlHeartbeatInterval);
+          const msg = data.message || null;
+          chrome.storage.local.remove(["ql_license_valid","ql_license_key","ql_session_id","ql_user_name","ql_expires_at","ql_activated_at","ql_license_status","ql_last_ok_validate"], () => {
+            const box = document.getElementById("ql-floating");
+            if(box) showLicenseGate(box);
+            if(msg) setTimeout(() => showCustomAlert("Acesso Negado", msg), 500);
+          });
+          return;
+        }
+        console.warn("[UEDA] heartbeat não-definitivo ignorado:", data && data.reason);
         return;
       }
+      qlMarkValidated();
 
       qlOnlineCount = data.online_count || 0;
       const countEl = document.getElementById("ql-online-count");
@@ -2415,7 +2398,7 @@ function setupDownloadProject() {
       if (authToken.indexOf('Bearer ') === 0) authToken = authToken.slice(7);
 
       var projectId = storedProjectId;
-      if (!projectId) throw new Error('Abra uma pagina de projeto do Lovable primeiro.');
+      if (!projectId) throw new Error('Abra uma pagina de projeto do Lovable SORAXiro.');
       if (!authToken) {
         var cookieResponse = await new Promise(function(resolve) {
           chrome.runtime.sendMessage({ action: "readCookies" }, function(resp) { resolve(resp); });

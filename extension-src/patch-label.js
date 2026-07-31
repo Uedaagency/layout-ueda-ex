@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const REPLACEMENT = "⚡ Enviado por UEDAEX";
+  const REPLACEMENT = "⚡ Enviado por UEDA";
 
   const EXACT = new Set([
     "SECURITY SCAN",
@@ -26,6 +26,11 @@
     /verificaci[óo]n\s*de\s*seguridad/gi,
     /fix\s*build\s*error/gi,
     /corrigir\s*erros?\s*de\s*build/gi,
+    /try\s*to\s*fix\s*seo\s*issue\s*:?\s*[^\n]*/gi,
+    /fix\s*seo\s*issue\s*:?\s*[^\n]*/gi,
+    /meta\s*description/gi,
+    /edi[çc][ãa]o\s*visual/gi,
+    /visual\s*edits?/gi,
   ];
 
   function shouldReplace(text) {
